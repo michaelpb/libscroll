@@ -1,0 +1,40 @@
+{
+  "name": "libscroll",
+  "version": "0.0.1",
+  "description": "Core library for Scroll editor",
+  "main": "index.js",
+  "scripts": {
+    "test": "./runtests.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@bitbucket.org/michaelb/libscroll.git"
+  },
+  "keywords": [
+    "wordprocessor",
+    "texteditor",
+    "editor",
+    "text"
+  ],
+  "engines": {
+    "node": ">=5.0"
+  },
+  "author": "Michael Bethencourt <michaelpb@gmail.com> (http://michaelb.org/)",
+  "license": "GPL-3.0",
+  "homepage": "https://bitbucket.org/michaelb/libscroll#readme",
+  "dependencies": {
+    "fstream": "1.0.8",
+    "glob": "7.0.0",
+    "lodash": "4.5.0",
+    "mkdirp": "0.5.1",
+    "ncp": "2.0.0",
+    "node-uuid": "1.4.7",
+    "schemaconf": "git+https://bitbucket.org/michaelb/schemaconf.git#3095ac4",
+    "taglex": "0.1.10",
+    "tar": "2.2.1"
+  },
+  "devDependencies": {
+    "jasmine": "2.4.1",
+    "jasmine-spec-reporter": "2.4.0"
+  }
+}
