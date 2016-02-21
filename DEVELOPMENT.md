@@ -23,7 +23,7 @@ meta-data about the Workspace, such as authorship information.
 
 Now, if the `.scroll` file is git-based, the only other file or directory
 within the top level `scroll-tar` directory must be a bare git repo named
-`scroll.git`. 
+`scroll.git`.
 
 If the `.scroll` file is not git-based, then the remaining contents of the
 `scroll-tar` directory constitute the entirety of the Scroll Workspace.
@@ -166,4 +166,34 @@ const Tag = require('libscroll/mods/document/Tag');
 
 ### static
 
-TODO
+- `constructor(namespace, name, validated_conf, css, html, containment)`
+    - `namespace`, string: namespace of tag
+    - `name`, string: name of tag
+    - `validated_conf`, object: validated schema-conf
+    - `css`, object: like `render_target: sanitized CSS`
+    - `containment`, ContainmentSet: info on which tags it can contain
+
+### public properties
+- `namespace`
+- `name`
+- `info`
+    - parsed schema conf
+- `tag_class`
+    - in the form of `namespace_name`
+
+### public methods
+
+- `get(type, targets, dont_fallback=false)`
+    - `type`: one of 'css', or 'html'
+    - `targets`: list of targets to try
+    - `dont_fallback`: do not fallback onto 'editor' or 'default'
+    - Gets a particular built-in rendering for this tag
+
+- `is_symbol()` - returns true if tag is a "symbol" tag, e.g. a self-closing
+  tag that is rendered into a single image or glyph without any special
+  properties
+
+- `is_block()` - returns true if tag is a "block-level" tag (in terms of the
+  editor)
+
+- `get_oldstyle_info()` - deprecated
