@@ -61,13 +61,26 @@ through discrete classes that inherit from ScrollObject.
 
 ## ScrollObject Base Class
 
-### static
+### abstract static methods
 
-- `static load(workspace, filehandle, callback)`
+- `abstract static load(workspace, path, callback)`
 
-    - Loads the given ScrollObject into memory. In general, this  is not used
-      directly, since  you can just instantiate a ScrollWorkspace that will
-      load for you
+    - Loads the given ScrollObject into memory. In general, this
+      is not used directly, since  you can just instantiate a
+      ScrollWorkspace that will load for you
+
+
+### static methods
+
+- `static new_from_cfg(constructor, path, callback)`
+
+    - Helper method that loads the given CFG file, parses it, and
+      instantiates a constructor based on the given callback
+
+### public properties
+
+- `name` -- this is an all lowercase name of this type, e.g.
+  'document' for Document, 'tag' for Tag
 
 ## ScrollContainer
 
@@ -90,18 +103,25 @@ const ScrollWorkspace = require('libscroll/mods/workspace/ScrollWorkspace');
 
 ### static
 
-- `static load(workspace, filehandle, callback)`
+- `static load(path, callback)`
 
-   - In the case of ScrollWorkspace, this loads the entire workspace into
-     memory: filehandle must point to `manifest.cfg` file.  `workspace` should
-     be null.
+   - In the case of ScrollWorkspace, this loads the entire
+     workspace into memory.
 
-- `constructor(manifest, objects)`
+- `constructor(base_path, objects, manifest = {})`
 
     - Creates a new workspace with given manifest info and objects
 
+### public methods
+
+- `read(path, callback)`
+    - wraps around `fs.readFile`, given a subpath it will read its
+      contents and call callback
+
 
 ### public properties
+
+- `base_path` - location of the ScrollWorkspace
 
 - `objects`
 
@@ -144,15 +164,14 @@ const Document = require('libscroll/mods/document/Document');
 
 ### static
 
-- `constructor(contents, structure, parser, editor_parser, editor_renderer)`
+- `constructor(contents, parser, editor_parser, editor_renderer)`
 
-    - Constructs a new Document object with the given StructureObject, the
+    - Constructs a new Document object with the given the
       given TreeParser, the given ScrollMarkdownParser, and the given
       EditorRenderer, which should all be already fully loaded.
 
 ### public properties
 
-- `structure`
 - `parser` - the TreeParser
 - `editor_parser` - a flat-parser (for editor reading)
 - `editor_renderer` - a flat-renderer (for editor export)
@@ -167,14 +186,8 @@ const Tag = require('libscroll/mods/document/Tag');
 
 ### static
 
-- `constructor(namespace, name, validated_conf, css, html, containment)`
-    - `namespace`, string: namespace of tag
-    - `name`, string: name of tag
+- `constructor(validated_conf)`
     - `validated_conf`, object: validated schema-conf
-    - `css`, object: like `render_target: sanitized CSS`
-    - `containment`, ContainmentSet: info on which tags it can contain
-        - Note that this is purely for the editor, and the markdown parser. It
-          has nothing to do with the Structure of the final document
 
 ### public properties
 - `namespace`
@@ -183,6 +196,10 @@ const Tag = require('libscroll/mods/document/Tag');
     - parsed schema conf
 - `tag_class`
     - in the form of `namespace_name`
+- `css`, object: like `render_target: sanitized CSS`
+- `containment`, ContainmentSet: info on which tags it can contain
+    - Note that this is purely for the editor, and the markdown parser. It
+        has nothing to do with the Structure of the final document
 
 ### public methods
 
@@ -203,17 +220,19 @@ const Tag = require('libscroll/mods/document/Tag');
 
 ## Structure
 
-Structure holds the document structure. It is necessary when rendering with a
-Style, since it turns a flat object (a Document) into something fully
-hierarchical according to rules. For example, a book might have a structure of
-a document contains volumes, which contain parts, which contain chapters, which
-contain sections, which in turn contain everything else.
+Structure holds the document structure. It is necessary when
+rendering with a Style, since it turns a flat object (a Document)
+into something fully hierarchical according to rules. For example,
+a book might have a structure of a document contains volumes,
+which contain parts, which contain chapters, which contain
+sections, which in turn contain everything else.
 
-Structures also contain ordering info. For example, in a book Chapters and
-Appendices might exist at the same hierarchical level, but Appendices are
-considered "back-matter" and thus belong in the end of the book when published,
-and chapters are considered "body-matter" and thus belong before the
-Appendices. Likewise for "Forwards", "Epilogues", etc.
+Structures also contain ordering info. For example, in a book
+Chapters and Appendices might exist at the same hierarchical
+level, but Appendices are considered "back-matter" and thus belong
+in the end of the book when published, and chapters are considered
+"body-matter" and thus belong before the Appendices. Likewise for
+"Forwards", "Epilogues", etc.
 
 
 ```javascript

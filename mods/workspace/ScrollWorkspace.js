@@ -2,6 +2,7 @@
 const lodash = require('lodash');
 const glob = require('glob');
 const path = require('path');
+const fs = require('fs');
 
 const ScrollObject = require('../../lib/ScrollObject');
 const Filetype = require('../../mods/filetype/Filetype');
@@ -12,19 +13,19 @@ class ObjectContainer extends Array {
 
         for (const object of objects) {
             this.push(object);
-            const name = object.constructor.name;
-            if (!(name in this)) {
-                this[name] = [];
+            if (!(object.typename in this)) {
+               this[object.typename] = [];
             }
-            this[name].push(object);
+            this[object.typename].push(object);
         }
     }
 }
 
 class ScrollWorkspace extends ScrollObject {
-    constructor(objects, is_partial = false) {
+    constructor(base_path, objects, is_partial = false) {
         super();
         this.objects = new ObjectContainer(objects);
+        this.base_path = base_path;
         this.is_partial = is_partial; // true, if only partially loaded
     }
 
@@ -44,11 +45,19 @@ class ScrollWorkspace extends ScrollObject {
         // essentially, ls -R on the directory
         glob('**', {cwd: base_path, mark: true}, (error, paths) => {
             if (error) { throw error; }
-            const constructor = objects => new ScrollWorkspace(objects, true);
+            const constructor = objects => new ScrollWorkspace(base_path, objects, true);
             Filetype.load_all(filetypes, paths, constructor, objects => {
-                const workspace = new ScrollWorkspace(objects);
+                const workspace = new ScrollWorkspace(base_path, objects);
                 callback(workspace);
             });
+        });
+    }
+
+    read(relative_path, callback) {
+        const full_path = path.join(this.base_path, relative_path);
+        fs.readFile(full_path, (error, data) => {
+            if (error) { throw error; }
+            callback(data);
         });
     }
 }

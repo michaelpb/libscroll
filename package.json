@@ -33,7 +33,7 @@
     "schemaconf": "git+https://bitbucket.org/michaelb/schemaconf.git#3095ac4",
     "taglex": "0.1.10",
     "tar": "2.2.1",
-    "topo-sort": "^1.0.0"
+    "topo-sort": "1.0.0"
   },
   "devDependencies": {
     "jasmine": "2.4.1",

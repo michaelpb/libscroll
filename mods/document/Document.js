@@ -3,51 +3,65 @@
 The Document class encapsulates a single Document. A scroll workspace (e.g.
 ".scroll" file), may have more than one Document.
 */
-//const ScrollMarkdownParser = require('../../lib/parser/ScrollMarkdownParser');
-//const TreeParser = require('../../lib/parser/TreeParser');
-//const EditorRenderer = require('../../lib/renderer/EditorRenderer');
+
+const ScrollMarkdownParser = require('../../lib/parser/ScrollMarkdownParser');
+const TreeParser = require('../../lib/parser/TreeParser');
+const EditorRenderer = require('../../lib/renderer').EditorRenderer;
 //const Style = require('../style/Style');
-const fs = require('fs');
+const ScrollObject = require('../../lib/ScrollObject');
 const async = require('async');
 
-class Document {
-    constructor(contents, structure, parser, editor_parser, editor_renderer) {
+class Document extends ScrollObject {
+    constructor(contents, parser, editor_parser, editor_renderer) {
+        super();
         this.contents = contents;
-        this.structure = structure;
         this.parser = parser;
         this.editor_parser = editor_parser;
         this.editor_renderer = editor_renderer;
     }
 
-    static load(workspace, filedescriptor, callback) {
+    static load(workspace, path, callback) {
+        // Step 1, compile document parsers
+        const actions = [];
+
+        // just gets top structure for now
+        const structure = workspace.objects.structure &&
+            workspace.objects.structure[0] || null;
+        let parser = null;
+        if (structure) {
+            // Has a structure, can build a TreeParser
+            parser = new TreeParser(tagloader, structure);
+            actions.push(done => parser.compile(done));
+        }
+
+        const tags = workspace.objects.tag || [];
+
+        // Compile parser based ones
+        const editor_parser =
+            new ScrollMarkdownParser(tags, {emit_source: true});
+        const editor_renderer = new EditorRenderer(tags);
+        actions.push(done => editor_parser.compile(done));
+        actions.push(done => editor_renderer.compile(done));
+
+        let contents;
+        actions.push(done => {
+            workspace.read(path, data => {
+                contents = data.toString();
+                done();
+            })
+        });
+
+        // Now perform all the necessary asynchronous actions
+        async.parallel(actions, () => {
+            const doc = new Document(
+                contents, parser, editor_parser, editor_renderer);
+            callback(doc);
+        });
     }
 
     static get dependencies() {
-        return [];
-        return ['tag'];
+        return ['tag', 'structure'];
     }
 }
-
-function prepare(tagloader, structure, callback) {
-    /* ***************************************
-     * Step 1, compile document parsers
-     * *************************************** */
-    // Compile parsers for the documents
-    this.structure = structure;
-    this.parser = new TreeParser(tagloader, this.structure);
-    if (this.opts.prep_editor) {
-        let emit_opts = { emit_source: true };
-        this.editor.parser = new ScrollMarkdownParser(tagloader, emit_opts);
-        this.editor.renderer = new EditorRenderer(tagloader);
-    }
-
-    let after = _.after(3, function () {
-        callback();
-    });
-
-    this.parser.compile(after);
-    this.editor.parser.compile(after);
-    this.editor.renderer.compile(after);
-};
 
 module.exports = Document;
