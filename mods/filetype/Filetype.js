@@ -36,18 +36,29 @@ class Filetype extends ScrollObject {
         // First, we sort based on dependencies
         const sorter = new TopoSort();
         const filetypes_by_name = {};
+        const already_loaded = new Set();
+        const all_types = [];
         for (const filetype of filetypes) {
             if (filetype.dependencies) {
                 sorter.add(filetype.object_name, filetype.dependencies);
             }
 
+            all_types.push(filetype.object_name);
             filetypes_by_name[filetype.object_name] = filetype;
         }
 
         // Recursively load all items on the list
-        const sorted_list = sorter.sort();
+        const sorted_list = sorter.sort().concat(all_types);
         const loaded_objects = [];
         async.eachSeries(sorted_list, (name, finished_filetype) => {
+
+            // To prevent filetypes from getting loaded twice
+            if (already_loaded.has(name)) {
+                return finished_filetype(); // skip ahead;
+            } else {
+                already_loaded.add(name);
+            }
+
             const filetype = filetypes_by_name[name];
             if (!filetype) {
                 console.error('known file types: ', Object.keys(filetypes_by_name));

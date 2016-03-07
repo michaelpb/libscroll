@@ -1,6 +1,6 @@
 Next steps:
 
-1. Finish all of the DOCUMENTATION document
+1. Finish all of the DEVELOPMENT document
 
 2. Start pulling code + tests from le2 and filling in the holes until we have a
 nice public API
@@ -21,7 +21,3 @@ libscroll
         - Export
         - Image
         - maybe History (Git)?
-
-    - lib
-        - Config - contains old "actions" concept
-

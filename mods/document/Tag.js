@@ -5,6 +5,10 @@
 const ScrollObject = require('../../lib/ScrollObject');
 const async = require('async');
 const schemaconf = require('schemaconf');
+const lodash = require('lodash');
+function clean(str) {
+    return lodash.trim(str).replace(/\s\s+/g, ' ');
+}
 
 // Pull in tag schema
 const SCHEMA = require('./schemas').tag;
@@ -24,7 +28,6 @@ class Tag extends ScrollObject {
         // Get info, like we would find in a tag_name.cfg file
         this.tag_class = this.namespace + '_' + this.name;
         this.css_selector = "." + this.tag_class;
-        this.prepared = false;
 
         this.containment_class = this.info.tag.class;
         if (this.info.markdown) {
@@ -33,6 +36,7 @@ class Tag extends ScrollObject {
             this.contains = [];
         }
         this.meta = this.info.tag;
+        this._prepare();
     };
 
     static load(workspace, relpath, callback) {
@@ -70,6 +74,31 @@ class Tag extends ScrollObject {
 
         callback();
     }
+
+    static render_css(tags, target) {
+        return tags.map(tag => tag.get('css', target)).join('');
+    }
+
+    /* "Bakes" CSS and HTML into pre-rendered templates for fast
+     * insertion / removal
+     */
+    _prepare() {
+        this.css  = {};
+        this.html = {};
+        for (var i in this.info.style) {
+            var style = this.info.style[i];
+            var css = this._replace_css_sheet(style.css);
+            //var html = this._wrap_html(style.html);
+            var html = style.html;
+
+            for (var i in style.target) {
+                var target_name = style.target[i];
+                this.css[target_name] = css;
+                this.html[target_name] = html;
+            }
+        };
+    }
+
     get_oldstyle_info() {
         return _.extend({
             name: _.str.humanize(this.name),
@@ -87,34 +116,10 @@ class Tag extends ScrollObject {
         return this.info.symbol && this.info.symbol.tag;
     }
 
-    /* "Bakes" CSS and HTML into pre-rendered templates for fast
-     * insertion / removal
-     */
-    prepare(callback) {
-        this.css  = {};
-        this.html = {};
-        for (var i in this.info.style) {
-            var style = this.info.style[i];
-            var css = this._replace_css_sheet(style.css);
-            //var html = this._wrap_html(style.html);
-            var html = style.html;
-
-            for (var i in style.target) {
-                var target_name = style.target[i];
-                this.css[target_name] = css;
-                this.html[target_name] = html;
-            }
-        };
-
-        this.prepared = true;
-        callback();
-    }
-
-
     _replace_css_sheet(css) {
         // Skip over empty CSS
         var s = css;
-        if (!s || _.str.trim(s) === '') {
+        if (!s || lodash.trim(s) === '') {
             return '';
         }
 
@@ -128,8 +133,8 @@ class Tag extends ScrollObject {
 
         // now clean up, and prefix anything thats missing it with the appropriate
         // class:
-        s = s.split("}").map(_.bind(function (declaration) {
-            var decr = _.str.clean(declaration);
+        s = s.split("}").map(lodash.bind(function (declaration) {
+            var decr = clean(declaration);
             if (decr === '') { return ''; }
             if (decr.indexOf(this.css_selector) !== 0) {
                 decr = this.css_selector + ' ' + decr;
@@ -145,9 +150,10 @@ class Tag extends ScrollObject {
 
     get(type, targets, is_retry) {
         /* Gets a particular rendering for this tag */
-        if (_.isString(targets)) { targets = [targets] }
+        if (targets instanceof String) { targets = [targets] }
         target = target || ['']; // to force default
 
+        let obj;
         if (type === 'css') { obj = this.css; }
         else { obj = this.html }
 

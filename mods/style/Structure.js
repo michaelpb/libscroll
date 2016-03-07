@@ -3,10 +3,26 @@ const ScrollObject = require('../../lib/ScrollObject');
 const lodash = require('underscore');
 const schemaconf = require('schemaconf');
 
+// Pull in tag schema
+const SCHEMA = require('./schemas').structure;
+const CONFSCHEMA = new schemaconf.ConfSchema(
+    SCHEMA, {"no_exceptions": true});
+
 class Structure extends ScrollObject {
     constructor(info) {
         super(info);
         this.structure = info.structure;
+        // Create matchers based on structure
+        this.get_ordering_index = this._make_structure_matcher(this.structure.ordering);
+        this.get_hierarchy_index = this._make_structure_matcher(this.structure.hierarchy);
+    }
+
+    static load(workspace, relpath, callback) {
+        ScrollObject.new_from_cfg(Structure, workspace, relpath, callback);
+    }
+
+    static get confschema() {
+        return CONFSCHEMA;
     }
 
     static get ROOT() {
@@ -39,13 +55,6 @@ class Structure extends ScrollObject {
         var i_a = this.get_hierarchy_index(tag_a);
         var i_b = this.get_hierarchy_index(tag_b);
         return Structure.cmp(i_a, i_b);
-    }
-
-    prepare(callback) {
-        // Create matchers based on structure
-        this.get_ordering_index = this._make_structure_matcher(this.structure.ordering);
-        this.get_hierarchy_index = this._make_structure_matcher(this.structure.hierarchy);
-        callback();
     }
 
     _make_structure_matcher(obj) {
