@@ -1,0 +1,27 @@
+Next steps:
+
+1. Finish all of the DOCUMENTATION document
+
+2. Start pulling code + tests from le2 and filling in the holes until we have a
+nice public API
+
+3. Move on to `scrolldata` and `scrollcli` and/or `scrolleditor`
+
+Full libscroll description:
+
+libscroll
+    - mods
+        - ScrollContainer
+        - ScrollWorkspace
+        - Filetype
+        - Document
+        - Tag
+        - Structure
+        - Style
+        - Export
+        - Image
+        - maybe History (Git)?
+
+    - lib
+        - Config - contains old "actions" concept
+

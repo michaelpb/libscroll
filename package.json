@@ -4,7 +4,7 @@
   "description": "Core library for Scroll editor",
   "main": "index.js",
   "scripts": {
-    "test": "./runtests.js"
+    "test": "node --harmony_default_parameters ./runtests.js"
   },
   "repository": {
     "type": "git",
@@ -23,15 +23,17 @@
   "license": "GPL-3.0",
   "homepage": "https://bitbucket.org/michaelb/libscroll#readme",
   "dependencies": {
+    "async": "1.5.2",
     "fstream": "1.0.8",
-    "glob": "7.0.0",
+    "glob": "7.0.3",
     "lodash": "4.5.0",
     "mkdirp": "0.5.1",
     "ncp": "2.0.0",
     "node-uuid": "1.4.7",
     "schemaconf": "git+https://bitbucket.org/michaelb/schemaconf.git#3095ac4",
     "taglex": "0.1.10",
-    "tar": "2.2.1"
+    "tar": "2.2.1",
+    "topo-sort": "^1.0.0"
   },
   "devDependencies": {
     "jasmine": "2.4.1",

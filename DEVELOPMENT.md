@@ -17,9 +17,9 @@ bytes `scroll-tar`. The `scroll-tar` directory is the same directory, when
 unzipped, that constitutes the Scroll Workspace.
 
 The first file tarred into a `.scroll` file, within a that `scroll-tar`
-directory, should be `.scrollid`. This file contains a UUID for the Workspace.
-The next file should be the Workspace's `manifest.cfg`. This file contains
-meta-data about the Workspace, such as authorship information.
+directory, should be named `.scrollid`. This file contains a UUID for the
+Workspace.  The next file should be the Workspace's `manifest.cfg`. This file
+contains meta-data about the Workspace, such as authorship information.
 
 Now, if the `.scroll` file is git-based, the only other file or directory
 within the top level `scroll-tar` directory must be a bare git repo named
@@ -31,10 +31,10 @@ If the `.scroll` file is not git-based, then the remaining contents of the
 ## Scroll Workspace
 
 A Scroll Workspace might colloquially be thought of as a "Scroll Document". It
-is analogous to the contents of an unzipped OpenXML document, or an unzipped
-ePub document. The term Workspace is used to avoid confusion between the
-`.scroll` file-format, and the standard case when Workspaces are untarred into
-a user's home directory for use.
+is analogous to the contents of an unzipped OpenXML (docx) document, or an
+unzipped ePub document. The term Workspace is used to avoid confusion between
+the `.scroll` file-format, and the standard case when Workspaces are untarred
+into a user's home configuration directory for use.
 
 ## Config system
 
@@ -118,11 +118,12 @@ const Filetype = require('libscroll/mods/workspace/Filetype');
 
 ### static
 
-- `constructor(object_constructor,  matcher)`
+- `constructor(object_constructor, [matcher])`
 
-    - Constructs a new FileType object with the giv
-      given TreeParser, the given ScrollMarkdownParser, and the given
-      EditorRenderer, which should all be already fully loaded.
+    - Constructs a new FileType object
+    - Matcher can be a function or a regexp to be applied to the path. If not
+      specified, defaults to guessing filetype based on directory and classname
+      (e.g., 'Tag' goes in 'tags')
 
 - `load_all(filetypes, paths, callback)`
 
@@ -131,7 +132,7 @@ const Filetype = require('libscroll/mods/workspace/Filetype');
 
 ### static properties
 
-- `defaults` 
+- `defaults`
 
     - A list of pre-instantiated file types, used to bootstrap everything
 
@@ -172,6 +173,8 @@ const Tag = require('libscroll/mods/document/Tag');
     - `validated_conf`, object: validated schema-conf
     - `css`, object: like `render_target: sanitized CSS`
     - `containment`, ContainmentSet: info on which tags it can contain
+        - Note that this is purely for the editor, and the markdown parser. It
+          has nothing to do with the Structure of the final document
 
 ### public properties
 - `namespace`
@@ -197,3 +200,93 @@ const Tag = require('libscroll/mods/document/Tag');
   editor)
 
 - `get_oldstyle_info()` - deprecated
+
+## Structure
+
+Structure holds the document structure. It is necessary when rendering with a
+Style, since it turns a flat object (a Document) into something fully
+hierarchical according to rules. For example, a book might have a structure of
+a document contains volumes, which contain parts, which contain chapters, which
+contain sections, which in turn contain everything else.
+
+Structures also contain ordering info. For example, in a book Chapters and
+Appendices might exist at the same hierarchical level, but Appendices are
+considered "back-matter" and thus belong in the end of the book when published,
+and chapters are considered "body-matter" and thus belong before the
+Appendices. Likewise for "Forwards", "Epilogues", etc.
+
+
+```javascript
+const Structure = require('libscroll/mods/style/Structure');
+```
+
+### static
+
+- `constructor(validated_conf)`
+
+### public properties
+- `namespace`
+- `name`
+
+### public methods
+- `order_cmp(tag_a, tag_b)`
+    - based on order, comparison function for ordering two tags (same interface as cmp)
+- `hiearchy_cmp(tag_a, tag_b)`
+    - like above, but based on hierarchy
+- `filter_ordering(tag_context, taglist)` - deprecated
+
+### public static properties
+
+Constants that are the values returned by `order_cmp` (simply named versions of
+-1, 0, and 1):
+
+- `EQUAL` - The two tags are equal in hierarchy or order
+- `LEFT_HIGHER` and `RIGHT_HIGHER` - 
+- `LEFT_EARLIER` and `RIGHT_EARLIER` - Mean
+
+More public constants:
+
+- `ROOT` - Tag-like object which is used as the imaginary ROOT element
+- `UNRANKED` - Means the given Tag cannot be ranked
+
+## Style
+
+Style represents an export style. It contains a set of rules for over-riding
+the built-in styles in Tag. It also can contain document-level rendering rules
+for different targets. The way to think of it is that styling info contained in
+Styles is "top-down", while styling info contained in Tags is "bottom-up".
+
+Styles can take advantage of a full templating engine (TinyTinyTemplates, the
+syntax is similar to jinja or django templating systems).
+
+
+```javascript
+const Style = require('libscroll/mods/style/Style');
+```
+
+### static
+
+- `constructor(namespace, name, validated_conf)`
+
+### public methods
+- `get_root()` - returns root template
+- `get_style(tag)` - returns template for given tag
+
+
+## Export
+
+```javascript
+const Export = require('libscroll/mods/export/Export');
+```
+
+TODO
+
+## Image
+
+```javascript
+const Image = require('libscroll/mods/media/Image');
+```
+
+TODO
+
+
