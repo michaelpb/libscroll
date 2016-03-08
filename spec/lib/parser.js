@@ -6,6 +6,9 @@ const REV = {
     2: "TAG",
     3: "OPEN_TAG",
     4: "CLOSE_TAG",
+    5: "NODE_ENTER",
+    6: "NODE_EXIT",
+    7: "NODE",
 };
 
 describe('ScrollMarkdownParser', () => {
@@ -162,19 +165,17 @@ describe('ScrollMarkdownParser', () => {
     });
 });
 
-describe('StructuredParser', () => {
-});
 
-var TEXT = [
+const TEXT = [
     'p0',
     // dont have have 2 newlines after blockquote, to prevent extraneous newlines
-    '<testing_blockquote>\na quote\n</testing_blockquote>p1',
+    '<default_blockquote>\na quote\n</default_blockquote>p1',
     '## doc',
         'p2',
         'some *formatted* text',
 ].join("\n\n");
 
-var EXPECTED_RESULTS = [
+const EXPECTED_RESULTS = [
     [ 'NODE_ENTER', 'para' ], [ 'OPEN_TAG', 'para' ], [ 'TEXT', 'p0' ], [ 'CLOSE_TAG', 'para' ], [ 'NODE_EXIT', 'para' ],
     [ 'NODE_ENTER', 'blockquote' ],
         [ 'OPEN_TAG', 'blockquote' ],
@@ -192,32 +193,15 @@ var EXPECTED_RESULTS = [
     [ 'NODE_EXIT', 'section' ],
 ];
 
-exports.test_structure_parser = function (test) {
-    var contents = [];
-    helpers.load_structure_parser(function (parser) {
-        parser.parse(TEXT, function (type, tag, value) {
-            contents.push([REV[type], tag ? tag.name : value]);
-        }, function () {
-            //helpers.tokens_side_by_side(EXPECTED_RESULTS, contents);
-            test.deepEqual(contents, EXPECTED_RESULTS);
-            test.done();
-        });
-
-    }, {STRUCTFILENAME: "structure2.cfg"});
-
-};
-
-var TEXT_2 = [
+const TEXT_2 = [
     '## doc',
         'p4',
         // dont have full two newlines after blockquote, to prevent extraneous newlines
-        '<testing_blockquote>\n\n</testing_blockquote>p5',
+        '<default_blockquote>\n\n</default_blockquote>p5',
             'p6',
     ].join("\n\n");
 
-
-
-var EXPECTED_RESULTS_2 = [
+const EXPECTED_RESULTS_2 = [
     [ 'NODE_ENTER', 'section' ],
         [ 'OPEN_TAG', 'section' ], [ 'TEXT', ' doc' ], [ 'CLOSE_TAG', 'section' ],
         [ 'NODE_ENTER', 'para' ], [ 'OPEN_TAG', 'para' ], [ 'TEXT', 'p4' ], [ 'CLOSE_TAG', 'para' ], [ 'NODE_EXIT', 'para' ],
@@ -229,83 +213,119 @@ var EXPECTED_RESULTS_2 = [
     [ 'NODE_EXIT', 'section' ]
 ];
 
-
-exports.test_structure_parser_nested = function (test) {
-    var contents = [];
-    var text = TEXT_2
-    var expected_results = EXPECTED_RESULTS_2;
-    helpers.load_structure_parser(function (parser) {
-        parser.parse(text, function (type, tag, value) {
-            contents.push([REV[type], tag ? tag.name : value]);
-        }, function () {
-            test.deepEqual(expected_results, contents);
-            //console.log("CONTENTS", contents);
-            test.done();
+describe('StructuredParser', () => {
+    let parser;
+    let contents;
+    beforeEach((done) => {
+        contents = [];
+        helpers.load_structure_parser(loaded_parser => {
+            parser = loaded_parser;
+            done();
         });
+    });
 
-    }, {STRUCTFILENAME: "structure2.cfg"});
-};
+    afterEach(() => {
+        parser = null;
+        contents = null;
+    });
 
-exports.test_structure_parser_all = function (test) {
-    var contents = [];
-    var text = [TEXT, TEXT_2].join("\n\n");
-    var expected_results = EXPECTED_RESULTS.concat(EXPECTED_RESULTS_2);
-    helpers.load_structure_parser(function (parser) {
-        parser.parse(text, function (type, tag, value) {
-            contents.push([REV[type], tag ? tag.name : value]);
-        }, function () {
-            test.deepEqual(contents, expected_results);
-            //console.log("CONTENTS", contents);
-            //helpers.tokens_side_by_side(expected_results, contents);
-            test.done();
+    const push = (type, tag, value) => 
+        contents.push([REV[type], tag ? tag.name : value]);
+
+    it('parses markdown as expected', (done) => {
+        parser.parse(TEXT, push, () => {
+            //helpers.tokens_side_by_side(EXPECTED_RESULTS, contents);
+            expect(contents).toEqual(EXPECTED_RESULTS);
+            done();
         });
+    });
 
-    }, {STRUCTFILENAME: "structure2.cfg"});
-};
+    it('handles nested block structures', (done) => {
+        parser.parse(TEXT_2, push, () => {
+            expect(contents).toEqual(EXPECTED_RESULTS_2);
+            // helpers.tokens_side_by_side(EXPECTED_RESULTS_2, contents);
+            done();
+        });
+    });
 
-////////// TODO more carefully inspect this obj to be correct
-var EXPECTED_TREE = {
-    // root
-    "is_text": false, "tag": "root", "parent": null, "children": [
-        // p0
-        { "is_text": false, "tag": "para", "parent": "root", "children": [
-                { "is_text": true, "text": "p0", "parent": "para" } ]
-        // blockquote
-        }, { "is_text": false, "tag": "blockquote", "parent": "root", "children": [
-            // "p1"
-                { "is_text": false, "tag": "para", "parent": "blockquote", "children": [
-                        { "is_text": true, "text": "p1", "parent": "para" }
-                    ] } ],
-            // "a quote"
-            "head": [
-                { "is_text": false, "tag": "para", "parent": "blockquote", "children": [
-                        { "is_text": true, "text": "a quote", "parent": "para" }
-                    ] } ]
-        }, { "is_text": false, "tag": "section", "parent": "root", "children": [ {
-                    "is_text": false, "tag": "para", "parent": "section",
-                    "children": [ { "is_text": true, "text": "p2", "parent": "para" }
-                    ]
-                }, { "is_text": false, "tag": "para", "parent": "section", "children": [
-                        { "is_text": true, "text": "some ", "parent": "para" },
-                        { "is_text": false, "tag": "strong", "parent": "para", "children": [
-                                { "is_text": true, "text": "formatted", "parent": "strong" }
-                            ] }, { "is_text": true, "text": " text", "parent": "para" }
-                    ] } ],
-            "head": [ { "is_text": true, "text": " doc", "parent": "section" } ]
-        },
-        { "is_text": false, "tag": "section", "parent": "root", "children": [
-                { "is_text": false, "tag": "para", "parent": "section", "children": [
-                        { "is_text": true, "text": "p4", "parent": "para" }
-                    ]
-                }, { "is_text": false, "tag": "blockquote", "parent": "section", "children": [
-                        { "is_text": false, "tag": "para", "parent": "blockquote", "children": [
-                                { "is_text": true, "text": "p5", "parent": "para" }
-                            ] },
-                        { "is_text": false, "tag": "para", "parent": "blockquote", "children": [
-                                { "is_text": true, "text": "p6", "parent": "para" }
-                            ] } ] } ],
-            "head": [ { "is_text": true, "text": " doc", "parent": "section" }
-            ] } ] };
+    it('parsers longer document', (done) => {
+        const text = [TEXT, TEXT_2].join("\n\n");
+        const expected_results = EXPECTED_RESULTS.concat(EXPECTED_RESULTS_2);
+        parser.parse(text, push, () => {
+            expect(contents).toEqual(expected_results);
+            // helpers.tokens_side_by_side(expected_results, contents);
+            done();
+        });
+    });
+});
+
+describe('TreeParser', () => {
+    let parser;
+    beforeEach((done) => {
+        helpers.load_tree_parser(loaded_parser => {
+            parser = loaded_parser;
+            done();
+        });
+    });
+
+    afterEach(() => {
+        parser = null;
+    });
+
+    ////////// TODO more carefully inspect this obj to be correct
+    const EXPECTED_TREE = {
+        // root
+        "is_text": false, "tag": "root", "parent": null, "children": [
+            // p0
+            { "is_text": false, "tag": "para", "parent": "root", "children": [
+                    { "is_text": true, "text": "p0", "parent": "para" } ]
+            // blockquote
+            }, { "is_text": false, "tag": "blockquote", "parent": "root", "children": [
+                // "p1"
+                    { "is_text": false, "tag": "para", "parent": "blockquote", "children": [
+                            { "is_text": true, "text": "p1", "parent": "para" }
+                        ] } ],
+                // "a quote"
+                "head": [
+                    { "is_text": false, "tag": "para", "parent": "blockquote", "children": [
+                            { "is_text": true, "text": "a quote", "parent": "para" }
+                        ] } ]
+            }, { "is_text": false, "tag": "section", "parent": "root", "children": [ {
+                        "is_text": false, "tag": "para", "parent": "section",
+                        "children": [ { "is_text": true, "text": "p2", "parent": "para" }
+                        ]
+                    }, { "is_text": false, "tag": "para", "parent": "section", "children": [
+                            { "is_text": true, "text": "some ", "parent": "para" },
+                            { "is_text": false, "tag": "strong", "parent": "para", "children": [
+                                    { "is_text": true, "text": "formatted", "parent": "strong" }
+                                ] }, { "is_text": true, "text": " text", "parent": "para" }
+                        ] } ],
+                "head": [ { "is_text": true, "text": " doc", "parent": "section" } ]
+            },
+            { "is_text": false, "tag": "section", "parent": "root", "children": [
+                    { "is_text": false, "tag": "para", "parent": "section", "children": [
+                            { "is_text": true, "text": "p4", "parent": "para" }
+                        ]
+                    }, { "is_text": false, "tag": "blockquote", "parent": "section", "children": [
+                            { "is_text": false, "tag": "para", "parent": "blockquote", "children": [
+                                    { "is_text": true, "text": "p5", "parent": "para" }
+                                ] },
+                            { "is_text": false, "tag": "para", "parent": "blockquote", "children": [
+                                    { "is_text": true, "text": "p6", "parent": "para" }
+                                ] } ] } ],
+                "head": [ { "is_text": true, "text": " doc", "parent": "section" }
+                ] } ] };
+
+    xit('creates a full parse tree', (done) => {
+        const text = [TEXT, TEXT_2].join("\n\n");
+        const expected_results = EXPECTED_RESULTS.concat(EXPECTED_RESULTS_2);
+        parser.parse(text, () => {}, function (result) {
+            helpers.ast_strip_tags(result);
+            expect(result).toEqual(EXPECTED_TREE);
+            done();
+        });
+    });
+});
 
 exports.test_tree_parser_all = function (test) {
     var contents = [];
@@ -316,7 +336,6 @@ exports.test_tree_parser_all = function (test) {
             //contents.push([REV[type], tag ? tag.name : value]);
         }, function (a) {
             helpers.ast_strip_tags(a);
-            //console.log("a", JSON.stringify(a, null, '    '));
             test.deepEqual(a, EXPECTED_TREE);
             test.done();
         });

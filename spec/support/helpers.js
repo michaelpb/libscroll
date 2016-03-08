@@ -1,8 +1,10 @@
 'use strict';
+const _ = require('lodash');
 const Filetype = require('../../mods/filetype/Filetype');
 const Workspace = require('../../mods/workspace/ScrollWorkspace');
 const ScrollMarkdownParser = require('../../lib/parser/ScrollMarkdownParser');
 const StructuredParser = require('../../lib/parser/StructuredParser');
+const TreeParser = require('../../lib/parser/TreeParser');
 const EditorRenderer = require('../../lib/renderer').EditorRenderer;
 const Tag = require('../../mods/document/Tag');
 const Structure = require('../../mods/style/Structure');
@@ -54,18 +56,64 @@ exports.load_edit_renderer = function (opts, cb) {
 
 exports.load_structure = function (opts, callback) {
     const filename = opts.structure_file_name || 'structure2.cfg';
-    Filetype.load_all(JUST_STRUCTURE, [`structure/${filename}`], get_workspace, callback);
+    Filetype.load_all(JUST_STRUCTURE, [`structure/${filename}`], get_workspace,
+        structures => callback(structures[0]));
 };
 
 exports.load_structure_parser = function (callback) {
+    const opts = {};
     exports.load_tags(tags => {
         exports.load_structure({}, structure => {
             const parser = new StructuredParser(tags, structure, opts);
-            parser.compile(function () {
-                callback(parser);
-            });
+            parser.compile(() => callback(parser));
         });
     });
 };
 
+exports.load_tree_parser = function (callback) {
+    const opts = {};
+    exports.load_tags(tags => {
+        exports.load_structure({}, structure => {
+            const parser = new TreeParser(tags, structure, opts);
+            parser.compile(() => callback(parser));
+        });
+    });
+};
 
+exports.tokens_side_by_side = function (list1, list2) {
+    for (var i = 0; i < Math.max(list1.length, list2.length); i++) {
+        var ch = '';
+        if (_.isEqual(list1[i], list2[i])) {
+            ch = " | ";
+        } else {
+            ch = " X ";
+        }
+        console.log(i, ch, list1[i], list2[i]);
+    }
+};
+
+exports.pp_html = function (s1) {
+    var html = require('html');
+    console.log(html.prettyPrint(s1));
+};
+
+exports.html_diff = function (s1, s2) {
+    var html = require('html');
+    var s = function (v) { return html.prettyPrint(v).split("\n"); };
+    return exports.tokens_side_by_side(s(s1), s(s2));
+};
+
+exports.ast_strip_tags = function (o) {
+    // Cleans up the AST,  removing unneeded info, so we can do deep compares
+    if (o.tag && o.tag.name) { o.tag = o.tag.name; }
+    if (o.parent && o.parent.tag) { o.parent = o.parent.tag; }
+    o.children.forEach(exports.ast_strip_tags);
+    o.head.forEach(exports.ast_strip_tags);
+    if (o.children.length < 1) { delete o.children }
+    if (o.head.length < 1) { delete o.head }
+    if (o.text === null) { delete o.text }
+    if (o.tag === null) { delete o.tag }
+    // clean up other non-essential fields
+    delete o.is_unranked;
+    delete o.rank;
+};

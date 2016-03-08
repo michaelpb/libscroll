@@ -3,6 +3,9 @@ const ScrollObject = require('../../lib/ScrollObject');
 const lodash = require('underscore');
 const schemaconf = require('schemaconf');
 
+const {LEFT_EARLIER, LEFT_HIGHER, EQUAL, RIGHT_EARLIER, RIGHT_HIGHER,
+    UNRANKED} = require('../../lib/parser/constants');
+
 // Pull in tag schema
 const SCHEMA = require('./schemas').structure;
 const CONFSCHEMA = new schemaconf.ConfSchema(
@@ -12,9 +15,11 @@ class Structure extends ScrollObject {
     constructor(info) {
         super(info);
         this.structure = info.structure;
+
         // Create matchers based on structure
-        this.get_ordering_index = this._make_structure_matcher(this.structure.ordering);
-        this.get_hierarchy_index = this._make_structure_matcher(this.structure.hierarchy);
+        this.get_ordering_index = this._make_matcher(this.structure.ordering);
+        this.get_hierarchy_index = this._make_matcher(this.structure.hierarchy);
+        this.ROOT = Structure.ROOT; // a few things reference it here
     }
 
     static load(workspace, relpath, callback) {
@@ -57,32 +62,32 @@ class Structure extends ScrollObject {
         return Structure.cmp(i_a, i_b);
     }
 
-    _make_structure_matcher(obj) {
+    _make_matcher(obj) {
         // shortcut: everyone ties if there is nothing specified for the given type
-        if (!obj) { return function () { return 0; } }
+        if (!obj) { return () => 0; }
 
         // prepare structure
-        var sparse_matchers = [];
-        for (var index in obj) {
-            var index_val = parseInt(index);
+        const sparse_matchers = [];
+        for (let index in obj) {
+            let index_val = parseInt(index);
             if (index_val === NaN) { throw "invalid structure:" + index; }
             sparse_matchers.push([obj[index], index_val]);
         }
 
         // sort by rank
-        sparse_matchers.sort(function (a, b) { return a[1] > b[1]; });
+        sparse_matchers.sort((a, b) => a[1] > b[1]);
 
         // fill in gaps
-        var matchers = sparse_matchers.map(function (v) { return v[0]; });
+        var matchers = sparse_matchers.map(v => v[0]);
         var matchers_length = matchers.length;
 
         // return "structure matcher"
-        return function (taginfo) {
+        return (taginfo) => {
             if (taginfo === Structure.ROOT) {
                 return UNRANKED; // unranked
             }
 
-            for (var value = 0; value < matchers_length; value++) {
+            for (let value = 0; value < matchers_length; value++) {
                 if (matchers[value].match(taginfo)) {
                     return value;
                 }
@@ -118,17 +123,10 @@ class Structure extends ScrollObject {
         /// xxx actually need to check if "directly proceed"
         return taglist.all_tags.filter(lodash.bind(function (tag) {
             var order = this.order_cmp(tag_context, tag);
-            return order === Structure.LEFT_EARLIER ||
-                order === Structure.EQUAL;
+            return order === LEFT_EARLIER ||
+                order === EQUAL;
         }, this));
     }
 }
-
-const LEFT_EARLIER = Structure.prototype.LEFT_EARLIER = -1;
-const LEFT_HIGHER = Structure.prototype.LEFT_HIGHER = -1;
-const EQUAL = Structure.prototype.EQUAL = 0;
-const RIGHT_EARLIER = Structure.prototype.RIGHT_EARLIER = 1;
-const RIGHT_HIGHER = Structure.prototype.RIGHT_HIGHER = 1;
-const UNRANKED = Structure.prototype.UNRANKED = {"unranked": true};
 
 module.exports = Structure;

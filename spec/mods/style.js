@@ -1,6 +1,8 @@
 'use strict';
 const Structure = require('../../mods/style/Structure');
 const helpers = require('../support/helpers');
+const {LEFT_EARLIER, LEFT_HIGHER, EQUAL, RIGHT_EARLIER, RIGHT_HIGHER,
+    UNRANKED} = require('../../lib/parser/constants');
 
 describe('Structure', () => {
     describe('when testing loaded tags', () => {
@@ -11,8 +13,8 @@ describe('Structure', () => {
                 tags = loaded_tags;
                 helpers.load_structure(
                     {structure_file_name: 'structure.cfg'},
-                    (loaded_structures) => {
-                        st = loaded_structures[0];
+                    (loaded_structure) => {
+                        st = loaded_structure;
                         done();
                     }
                 );
@@ -35,12 +37,12 @@ describe('Structure', () => {
             const emphasis = tags.find(tag => tag.name === 'emphasis');
             const strong = tags.find(tag => tag.name === 'strong');
 
-            expect(st.hierarchy_cmp(section, para)).toEqual(st.LEFT_HIGHER);
+            expect(st.hierarchy_cmp(section, para)).toEqual(LEFT_HIGHER);
             // TODO this should pass! -----v
-            //expect(st.hierarchy_cmp(blockquote, section)).toEqual(st.RIGHT_HIGHER);
-            expect(st.hierarchy_cmp(para, blockquote)).toEqual(st.EQUAL);
-            expect(st.hierarchy_cmp(para, strong)).toEqual(st.LEFT_HIGHER);
-            expect(st.hierarchy_cmp(section, strong)).toEqual(st.LEFT_HIGHER);
+            expect(st.hierarchy_cmp(blockquote, section)).toEqual(RIGHT_HIGHER);
+            expect(st.hierarchy_cmp(para, blockquote)).toEqual(EQUAL);
+            expect(st.hierarchy_cmp(para, strong)).toEqual(LEFT_HIGHER);
+            expect(st.hierarchy_cmp(section, strong)).toEqual(LEFT_HIGHER);
         });
     });
 });

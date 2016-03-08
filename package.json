@@ -4,7 +4,7 @@
   "description": "Core library for Scroll editor",
   "main": "index.js",
   "scripts": {
-    "test": "node --harmony_default_parameters ./runtests.js"
+    "test": "node --harmony_default_parameters --harmony_destructuring ./runtests.js"
   },
   "repository": {
     "type": "git",
