@@ -20,7 +20,7 @@ describe('EditorRenderer', () => {
             helpers.load_edit_renderer({disable_custom_html: true}, set_vars(done));
         });
 
-        xit('renders typical markdown document', (done) => {
+        it('renders typical markdown document', (done) => {
             const text = [
                 "para 1 some -- sy < mb >ols",
                 "",
@@ -56,7 +56,7 @@ describe('EditorRenderer', () => {
             helpers.load_edit_renderer({ONLY_DO_PARA: true}, set_vars(done));
         });
 
-        xit('renders markdown document', (done) => {
+        it('renders markdown document', (done) => {
             const text = [
                 "para 1 some -- sy < mb >ols",
                 "",
@@ -92,7 +92,7 @@ describe('EditorRenderer', () => {
             helpers.load_edit_renderer({}, set_vars(done));
         });
 
-        xit('renders a markdown document', () => {
+        it('renders a markdown document', (done) => {
             const text = [
                 "para 1 some -- sy < mb >ols",
                 "",

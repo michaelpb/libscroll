@@ -47,7 +47,7 @@ exports.load_edit_renderer = function (opts, cb) {
         popts.ONLY_DO_PARA = true;
     }
     exports.load_parser(function (parser) {
-        var renderer = new EditorRenderer(parser.tagloader, opts);
+        var renderer = new EditorRenderer(parser.tags, opts);
         renderer.compile(function () {
             cb(parser, renderer);
         });
@@ -109,10 +109,10 @@ exports.ast_strip_tags = function (o) {
     if (o.parent && o.parent.tag) { o.parent = o.parent.tag; }
     o.children.forEach(exports.ast_strip_tags);
     o.head.forEach(exports.ast_strip_tags);
-    if (o.children.length < 1) { delete o.children }
-    if (o.head.length < 1) { delete o.head }
-    if (o.text === null) { delete o.text }
-    if (o.tag === null) { delete o.tag }
+    if (o.children.length < 1) { delete o.children; }
+    if (o.head.length < 1) { delete o.head; }
+    if (o.text === null) { delete o.text; }
+    if (o.tag === null) { delete o.tag; }
     // clean up other non-essential fields
     delete o.is_unranked;
     delete o.rank;

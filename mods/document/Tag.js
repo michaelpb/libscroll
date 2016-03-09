@@ -7,7 +7,7 @@ const async = require('async');
 const schemaconf = require('schemaconf');
 const lodash = require('lodash');
 function clean(str) {
-    return lodash.trim(str).replace(/\s\s+/g, ' ');
+    return lodash.trim(str.replace(/[\n\r\s]+/g, ' '));
 }
 
 // Pull in tag schema

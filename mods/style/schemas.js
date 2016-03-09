@@ -1,5 +1,7 @@
+'use strict';
+
 const Types = require('schemaconf').Types;
-const tagmatcher = require('../../lib/tagmatcher').schema_type;
+const objectmatcher = require('../../lib/objectmatcher').schema_type;
 
 module.exports.style = {
     "style": {
@@ -18,7 +20,7 @@ module.exports.style = {
         values: {
             match: {
                 required: true,
-                type: tagmatcher,
+                type: objectmatcher,
             },
             //target:   false, // defaults to "any"
             open:     false, // defaults to opening of tag export-style
@@ -71,15 +73,15 @@ module.exports.structure = {
         multiple: {
             classes: {
                 prefix: "_",
-                type: tagmatcher,
+                type: objectmatcher,
             },
             hierarchy: {
                 prefix: "h",
-                type: tagmatcher,
+                type: objectmatcher,
             },
             ordering: {
                 prefix: "o",
-                type: tagmatcher,
+                type: objectmatcher,
             },
         },
     },
