@@ -1,15 +1,6 @@
 'use strict';
 const helpers = require('../support/helpers');
-
-const REV = {
-    1: "TEXT",
-    2: "TAG",
-    3: "OPEN_TAG",
-    4: "CLOSE_TAG",
-    5: "NODE_ENTER",
-    6: "NODE_EXIT",
-    7: "NODE",
-};
+const REV = require('../../lib/parser/constants').REVERSED;
 
 describe('ScrollMarkdownParser', () => {
     let parser;

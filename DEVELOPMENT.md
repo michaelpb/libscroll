@@ -254,14 +254,19 @@ const Structure = require('libscroll/mods/style/Structure');
     - like above, but based on hierarchy
 - `filter_ordering(tag_context, taglist)` - deprecated
 
-### public static properties
+### useful constants
+
+```
+const {TEXT, TAG, OPEN_TAG, CLOSE_TAG, NODE_ENTER, NODE_EXIT, NODE}
+    = require('libscroll/lib/parser/constants');
+```
 
 Constants that are the values returned by `order_cmp` (simply named versions of
 -1, 0, and 1):
 
 - `EQUAL` - The two tags are equal in hierarchy or order
-- `LEFT_HIGHER` and `RIGHT_HIGHER` - 
-- `LEFT_EARLIER` and `RIGHT_EARLIER` - Mean
+- `LEFT_HIGHER` and `RIGHT_HIGHER`
+- `LEFT_EARLIER` and `RIGHT_EARLIER`
 
 More public constants:
 
