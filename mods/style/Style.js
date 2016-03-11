@@ -11,6 +11,10 @@ class Style extends ScrollObject {
         this.meta = this.info.style;
     }
 
+    static get EMPTY_STYLE() {
+        return new Style({template: [], namespace: 'default', name: 'empty'});
+    }
+
     compile(callback) {
         callback();
     }

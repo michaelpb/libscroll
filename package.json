@@ -36,7 +36,9 @@
     "topo-sort": "1.0.0"
   },
   "devDependencies": {
+    "html": "0.0.10",
     "jasmine": "2.4.1",
-    "jasmine-spec-reporter": "2.4.0"
+    "jasmine-spec-reporter": "2.4.0",
+    "prettyjson": "^1.1.3"
   }
 }

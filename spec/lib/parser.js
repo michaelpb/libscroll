@@ -229,7 +229,7 @@ describe('StructuredParser', () => {
         contents = null;
     });
 
-    const push = (type, tag, value) => 
+    const push = (type, tag, value) =>
         contents.push([REV[type], tag ? tag.name : value]);
 
     it('parses markdown as expected', (done) => {
@@ -316,29 +316,13 @@ describe('TreeParser', () => {
                 "head": [ { "is_text": true, "text": " doc", "parent": "section" }
                 ] } ] };
 
-    xit('creates a full parse tree', (done) => {
+    it('creates a full parse tree', (done) => {
         const text = [TEXT, TEXT_2].join("\n\n");
-        const expected_results = EXPECTED_RESULTS.concat(EXPECTED_RESULTS_2);
         parser.parse(text, () => {}, function (result) {
             helpers.ast_strip_tags(result);
-            expect(result).toEqual(EXPECTED_TREE);
+            // TODO for some reason, plain comparisons don't work, only stringify does, wtf
+            expect(JSON.stringify(result)).toEqual(JSON.stringify(EXPECTED_TREE));
             done();
         });
     });
 });
-
-exports.test_tree_parser_all = function (test) {
-    var contents = [];
-    var text = [TEXT, TEXT_2].join("\n\n");
-    var expected_results = EXPECTED_RESULTS.concat(EXPECTED_RESULTS_2);
-    helpers.load_tree_parser(function (parser) {
-        parser.parse(text, function (type, tag, value) {
-            //contents.push([REV[type], tag ? tag.name : value]);
-        }, function (a) {
-            helpers.ast_strip_tags(a);
-            test.deepEqual(a, EXPECTED_TREE);
-            test.done();
-        });
-    }, {STRUCTFILENAME: "structure2.cfg"});
-};
-

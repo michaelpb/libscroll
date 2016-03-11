@@ -5,7 +5,7 @@ const Workspace = require('../../mods/workspace/ScrollWorkspace');
 const ScrollMarkdownParser = require('../../lib/parser/ScrollMarkdownParser');
 const StructuredParser = require('../../lib/parser/StructuredParser');
 const TreeParser = require('../../lib/parser/TreeParser');
-const EditorRenderer = require('../../lib/renderer').EditorRenderer;
+const {EditorRenderer, StyleRenderer} = require('../../lib/renderer');
 const Tag = require('../../mods/document/Tag');
 const Structure = require('../../mods/style/Structure');
 const glob = require('glob');
@@ -78,6 +78,14 @@ exports.load_tree_parser = function (callback) {
             parser.compile(() => callback(parser));
         });
     });
+};
+
+exports.load_style_renderer = function (opts, cb) {
+    const {style} = opts;
+    exports.load_tree_parser(parser => {
+        const renderer = new StyleRenderer(parser.tags, style, opts);
+        renderer.compile(() => cb(parser, renderer));
+    }, opts);
 };
 
 exports.tokens_side_by_side = function (list1, list2) {
