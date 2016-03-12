@@ -7,36 +7,45 @@ The Document class encapsulates a single Document. A scroll workspace (e.g.
 const ScrollMarkdownParser = require('../../lib/parser/ScrollMarkdownParser');
 const TreeParser = require('../../lib/parser/TreeParser');
 const EditorRenderer = require('../../lib/renderer').EditorRenderer;
-//const Style = require('../style/Style');
+const Style = require('../style/Style');
+const Structure = require('../style/Structure');
 const ScrollObject = require('../../lib/ScrollObject');
 const async = require('async');
 
+const ACTIONS = {
+    render: (render_target = 'editor', style_name = null, structure_name = null, callback) => {
+        const renderer = this.new_renderer(render_target, style_name);
+        const parser = this.new_parser(render_target, structure_name);
+        return renderer.render_to_string(this.contents, parser, callback);
+    },
+};
+
 class Document extends ScrollObject {
-    constructor(contents, parser, editor_parser, editor_renderer) {
-        super();
-        this.contents = contents;
-        this.parser = parser;
-        this.editor_parser = editor_parser;
-        this.editor_renderer = editor_renderer;
+    constructor(info) {
+        super(info);
+        this.contents = info.document.contents;
     }
 
-    static load(workspace, path, callback) {
+    static load(workspace, relpath, callback) {
+        if (relpath.match(/.cfg$/)) {
+            ScrollObject.new_from_cfg(Document, workspace, relpath, callback);
+        } else {
+            workspace.read(path, data => {
+                const info = {document: {contents: data.toString()}};
+                const doc = new Document(info);
+                doc.workspace = workspace;
+                callback(doc);
+            });
+        }
+    }
+
+    static old_load(workspace, path, callback) {
         // Step 1, compile document parsers
         const actions = [];
 
-        // just gets top structure for now
-        const structure = workspace.objects.structure &&
-            workspace.objects.structure[0] || null;
-        let parser = null;
-        if (structure) {
-            // Has a structure, can build a TreeParser
-            parser = new TreeParser(tagloader, structure);
-            actions.push(done => parser.compile(done));
-        }
-
         const tags = workspace.objects.tag || [];
 
-        // Compile parser based ones
+        // Compile editor parser + renderer
         const editor_parser =
             new ScrollMarkdownParser(tags, {emit_source: true});
         const editor_renderer = new EditorRenderer(tags);
@@ -54,9 +63,61 @@ class Document extends ScrollObject {
         // Now perform all the necessary asynchronous actions
         async.parallel(actions, () => {
             const doc = new Document(
-                contents, parser, editor_parser, editor_renderer);
+                contents, editor_parser, editor_renderer);
+            doc.workspace = workspace;
             callback(doc);
         });
+    }
+
+
+    new_renderer(target, style_name) {
+        const tags = this.workspace.objects.tag;
+        if (target === 'editor') {
+            const editor_renderer = new EditorRenderer(tags);
+            editor_renderer().compile();
+            return editor_renderer;
+        }
+
+        let style;
+        if (style_name === null) {
+            style = Style.EMPTY_STYLE;
+        } else {
+            style = this.workspace.get(style_name);
+            if (!style) {
+                throw new Error('Could not find style: ' + style_name);
+            }
+        }
+
+        const style_renderer = new StyleRenderer(tags, style);
+        style_renderer.compile();
+        return style_renderer;
+    }
+
+    new_parser(target, structure_name) {
+        const tags = this.workspace.objects.tag;
+
+        if (target === 'editor') {
+            const editor_parser =
+                new ScrollMarkdownParser(tags, {emit_source: true});
+            editor_parser().compile();
+            return editor_parser;
+        }
+
+        let structure;
+        if (structure_name === null) {
+            structure = Structure.EMPTY_STRUCTURE;
+        } else {
+            structure = this.workspace.get(style_name);
+            if (!style) {
+                throw new Error('Could not find style: ' + style_name);
+            }
+        }
+
+        return new TreeParser(tags, structure);
+    }
+
+    get _actions() {
+        return ACTIONS;
     }
 
     static get dependencies() {

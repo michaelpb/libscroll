@@ -4,8 +4,35 @@ const Tag = require('../../mods/document/Tag');
 const helpers = require('../support/helpers');
 
 describe('Document', () => {
-    it('does things', () => {
-        expect(1+1).toEqual(2);
+    function new_doc(text) {
+        return new Document({document: {contents: 'test stuff'}});
+    }
+    fit('instantiates', () => {
+        expect(new_doc(contents).contents).toEqual('test stuff');
+    });
+
+    fit('rendering to editor HTML works', () => {
+        const TEXT = [
+            "para 1 some -- sy < mb >ols",
+            "",
+            "para 2",
+            "continued nested *inline u{stuff} to see*",
+            "",
+            "## section",
+            "",
+            "para 3",
+        ].join("\n");
+
+        const EXPECTED = [
+            '<bk class="default_para" data="para 1 some -- sy < mb >ols">',
+            'para 1 some &mdash; sy &lt; mb &gt;ols</bk>',
+            '<bk class="default_para" data="para 2 continued nested *inline u{stuff} to see*">',
+            'para 2\ncontinued nested <in class="default_strong">',
+            'inline <in class="default_emphasis">',
+            'stuff</in> ', 'to see</in>', '</bk>',
+            '<bk class="default_section" data="## section">', '<h1>', ' section</h1>', '</bk>',
+            '<bk class="default_para" data="para 3">', 'para 3</bk>',].join("");
+        const doc = new Document(TEXT);
     });
 });
 

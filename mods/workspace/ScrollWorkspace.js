@@ -5,6 +5,7 @@ const path = require('path');
 const fs = require('fs');
 
 const ScrollObject = require('../../lib/ScrollObject');
+const {ObjectMatcher} = require('../../lib/objectmatcher');
 const Filetype = require('../../mods/filetype/Filetype');
 
 class ObjectContainer extends Array {
@@ -18,6 +19,16 @@ class ObjectContainer extends Array {
             }
             this[object.typename].push(object);
         }
+    }
+
+    get(matching_string) {
+        const matcher = ObjectMatcher(matching_string);
+        return this.find(object => matcher.match(object));
+    }
+
+    get_all(matching_string) {
+        const matcher = ObjectMatcher(matching_string);
+        return this.filter(object => matcher.match(object));
     }
 }
 
@@ -36,7 +47,6 @@ class ScrollWorkspace extends ScrollObject {
             throw new Error('Path must be directory');
         }
 
-        // TODO: this has no manifest support
         const base_path = path.resolve(dir_path);
 
         // For now, just load defaults, no custom filetypes

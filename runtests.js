@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 // Generate syntax errors for invalid versions of node
 const requires_node_5 = () => {};
 const {requires_harmony_destructuring} = {};

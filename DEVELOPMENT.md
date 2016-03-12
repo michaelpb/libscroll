@@ -313,4 +313,17 @@ const Image = require('libscroll/mods/media/Image');
 
 TODO
 
+# Actions
 
+- Document
+    - `render(render_target)` - renders document to string (return value)
+    - `publish(path, render_target)` - renders document to a given path
+- ExportProfile
+    - `publish(basedir = './build')` - renders entire project to
+      base directory
+- Structure
+    - `tree(document)` - returns the tree
+- Style
+    - (none)
+- Tag
+    - (none)

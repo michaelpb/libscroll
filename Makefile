@@ -1,4 +1,4 @@
 test:
-	./runtests.js
+	npm test
 
 .PHONY: test
