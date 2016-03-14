@@ -24,6 +24,7 @@
   "homepage": "https://bitbucket.org/michaelb/libscroll#readme",
   "dependencies": {
     "async": "1.5.2",
+    "find-parent-dir": "0.3.0",
     "fstream": "1.0.8",
     "glob": "7.0.3",
     "lodash": "4.5.0",

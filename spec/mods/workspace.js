@@ -22,4 +22,22 @@ describe('ScrollWorkspace', () => {
             done();
         });
     });
+
+    it('can find a workspace in FS ancestry', (done) => {
+        const ws_path = path.join(PATH_PREFIX, 'workspaces', 'basic_ws/');
+        const example_file_path = path.join(ws_path, 'document', 'something');
+        ScrollWorkspace.find_parent_workspace(example_file_path, result => {
+            expect(result).toEqual(ws_path);
+            done();
+        });
+    });
+
+    it('can determine there is no workspace in FS ancestry', (done) => {
+        const ws_path = path.join(PATH_PREFIX, 'workspaces', 'nonexistent/');
+        const example_file_path = path.join(ws_path, 'document', 'something');
+        ScrollWorkspace.find_parent_workspace(example_file_path, result => {
+            expect(result).toEqual(null);
+            done();
+        });
+    });
 });

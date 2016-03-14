@@ -7,6 +7,9 @@ const fs = require('fs');
 const ScrollObject = require('../../lib/ScrollObject');
 const {ObjectMatcher} = require('../../lib/objectmatcher');
 const Filetype = require('../../mods/filetype/Filetype');
+const find_parent_dir = require('find-parent-dir');
+
+const SCROLLID_FILENAME = '.scrollid';
 
 class ObjectContainer extends Array {
     constructor(objects) {
@@ -60,6 +63,14 @@ class ScrollWorkspace extends ScrollObject {
                 const workspace = new ScrollWorkspace(base_path, objects);
                 callback(workspace);
             });
+        });
+    }
+
+    static find_parent_workspace(dir_path, callback) {
+        // Walk up dir path looking for scroll working directory
+        find_parent_dir(dir_path, SCROLLID_FILENAME, (error, result) => {
+            if (error) { throw error; }
+            callback(result);
         });
     }
 
