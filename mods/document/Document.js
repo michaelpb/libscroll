@@ -12,11 +12,13 @@ const Structure = require('../style/Structure');
 const ScrollObject = require('../../lib/ScrollObject');
 const async = require('async');
 
+const NOOP = () => {};
+
 const ACTIONS = {
-    render: (render_target = 'editor', style_name = null, structure_name = null, callback) => {
+    render: function (render_target = 'editor', style_name = null, structure_name = null) {
         const renderer = this.new_renderer(render_target, style_name);
         const parser = this.new_parser(render_target, structure_name);
-        return renderer.render_to_string(this.contents, parser, callback);
+        return renderer.render_to_string(this.contents, parser);
     },
 };
 
@@ -30,7 +32,7 @@ class Document extends ScrollObject {
         if (relpath.match(/.cfg$/)) {
             ScrollObject.new_from_cfg(Document, workspace, relpath, callback);
         } else {
-            workspace.read(path, data => {
+            workspace.read(relpath, data => {
                 const info = {document: {contents: data.toString()}};
                 const doc = new Document(info);
                 doc.workspace = workspace;
@@ -39,42 +41,11 @@ class Document extends ScrollObject {
         }
     }
 
-    static old_load(workspace, path, callback) {
-        // Step 1, compile document parsers
-        const actions = [];
-
-        const tags = workspace.objects.tag || [];
-
-        // Compile editor parser + renderer
-        const editor_parser =
-            new ScrollMarkdownParser(tags, {emit_source: true});
-        const editor_renderer = new EditorRenderer(tags);
-        actions.push(done => editor_parser.compile(done));
-        actions.push(done => editor_renderer.compile(done));
-
-        let contents;
-        actions.push(done => {
-            workspace.read(path, data => {
-                contents = data.toString();
-                done();
-            })
-        });
-
-        // Now perform all the necessary asynchronous actions
-        async.parallel(actions, () => {
-            const doc = new Document(
-                contents, editor_parser, editor_renderer);
-            doc.workspace = workspace;
-            callback(doc);
-        });
-    }
-
-
     new_renderer(target, style_name) {
         const tags = this.workspace.objects.tag;
         if (target === 'editor') {
             const editor_renderer = new EditorRenderer(tags);
-            editor_renderer().compile();
+            editor_renderer.compile(NOOP);
             return editor_renderer;
         }
 
@@ -89,7 +60,7 @@ class Document extends ScrollObject {
         }
 
         const style_renderer = new StyleRenderer(tags, style);
-        style_renderer.compile();
+        style_renderer.compile(NOOP);
         return style_renderer;
     }
 
@@ -99,7 +70,7 @@ class Document extends ScrollObject {
         if (target === 'editor') {
             const editor_parser =
                 new ScrollMarkdownParser(tags, {emit_source: true});
-            editor_parser().compile();
+            editor_parser.compile(NOOP);
             return editor_parser;
         }
 

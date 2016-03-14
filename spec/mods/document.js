@@ -2,26 +2,17 @@
 const Document = require('../../mods/document/Document');
 const Tag = require('../../mods/document/Tag');
 const helpers = require('../support/helpers');
+const fixtures = require('../support/fixtures');
 
 describe('Document', () => {
-    function new_doc(text) {
-        return new Document({document: {contents: 'test stuff'}});
-    }
-    fit('instantiates', () => {
-        expect(new_doc(contents).contents).toEqual('test stuff');
+    it('instantiates', () => {
+        const doc = new Document({document: {contents: 'test stuff'}});
+        expect(doc.contents).toEqual('test stuff');
     });
 
-    fit('rendering to editor HTML works', () => {
-        const TEXT = [
-            "para 1 some -- sy < mb >ols",
-            "",
-            "para 2",
-            "continued nested *inline u{stuff} to see*",
-            "",
-            "## section",
-            "",
-            "para 3",
-        ].join("\n");
+    it('actions rendering to editor HTML works', () => {
+        const workspace = fixtures.make_workspace();
+        const doc = workspace.objects.document[0];
 
         const EXPECTED = [
             '<bk class="default_para" data="para 1 some -- sy < mb >ols">',
@@ -32,7 +23,8 @@ describe('Document', () => {
             'stuff</in> ', 'to see</in>', '</bk>',
             '<bk class="default_section" data="## section">', '<h1>', ' section</h1>', '</bk>',
             '<bk class="default_para" data="para 3">', 'para 3</bk>',].join("");
-        const doc = new Document(TEXT);
+
+        expect(doc.actions.render()).toEqual(EXPECTED);
     });
 });
 

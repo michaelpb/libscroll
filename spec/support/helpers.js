@@ -1,7 +1,7 @@
 'use strict';
 const _ = require('lodash');
 const Filetype = require('../../mods/filetype/Filetype');
-const Workspace = require('../../mods/workspace/ScrollWorkspace');
+const ScrollWorkspace = require('../../mods/workspace/ScrollWorkspace');
 const ScrollMarkdownParser = require('../../lib/parser/ScrollMarkdownParser');
 const StructuredParser = require('../../lib/parser/StructuredParser');
 const TreeParser = require('../../lib/parser/TreeParser');
@@ -16,7 +16,7 @@ const PATH_PREFIX = path.resolve(path.join(__dirname, "..", "data"));
 const JUST_TAGS = [new Filetype(Tag, () => true)];
 const JUST_STRUCTURE = [new Filetype(Structure, () => true)];
 
-const WORKSPACE = new Workspace(PATH_PREFIX, []);
+const WORKSPACE = new ScrollWorkspace(PATH_PREFIX, []);
 const get_workspace = () => WORKSPACE;
 
 exports.load_tags = function (callback) {
@@ -86,6 +86,11 @@ exports.load_style_renderer = function (opts, cb) {
         const renderer = new StyleRenderer(parser.tags, style, opts);
         renderer.compile(() => cb(parser, renderer));
     }, opts);
+};
+
+exports.load_workspace = function (callback) {
+    const ws_path = path.join(PATH_PREFIX, 'workspaces', 'basic_ws/');
+    ScrollWorkspace.load(ws_path, callback);
 };
 
 exports.tokens_side_by_side = function (list1, list2) {
