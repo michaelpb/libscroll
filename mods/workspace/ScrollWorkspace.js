@@ -11,6 +11,26 @@ const find_parent_dir = require('find-parent-dir');
 
 const SCROLLID_FILENAME = '.scrollid';
 
+const ACTIONS = {
+    describe: function (object) {
+        if (!(object instanceof ScrollObject)) {
+            // use a matcher instead
+            object = this.objects.get(object);
+        }
+
+        return {
+            type: object.typename,
+            actions: object._actions ? Object.keys(object._actions) : "None",
+            info: {
+                name: object.name,
+                namespace: object.namespace,
+                fullname: object.fullname,
+                classnames: object.classnames,
+            },
+        };
+    },
+};
+
 class ObjectContainer extends Array {
     constructor(objects) {
         super();
@@ -87,6 +107,10 @@ class ScrollWorkspace extends ScrollObject {
             if (error) { throw error; }
             callback(data);
         });
+    }
+
+    get _actions() {
+        return ACTIONS;
     }
 }
 

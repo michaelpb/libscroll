@@ -60,4 +60,19 @@ describe('ScrollWorkspace', () => {
         tags = workspace.objects.get_all('namespace:default');
         expect(tags.length).toEqual(6);
     });
+
+    it('has the action describe which describes other objects', () => {
+        const workspace = fixtures.make_workspace();
+        expect(workspace.actions.describe('blockquote'))
+            .toEqual({
+                type: 'tag',
+                actions: 'None',
+                info: {
+                    name: 'blockquote',
+                    namespace: 'default',
+                    fullname: 'default_blockquote',
+                    classnames: ['text'],
+                }
+            });
+    });
 });
