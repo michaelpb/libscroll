@@ -68,6 +68,15 @@ class ScrollWorkspace extends ScrollObject {
         this.objects = new ObjectContainer(objects);
         this.base_path = base_path;
         this.is_partial = is_partial; // true, if only partially loaded
+
+        if (!is_partial) {
+            // Loop through all the args attaching magic "workspace" property
+            // TODO: this is hackish, and is probably only required because of
+            // toposorting issue
+            for (const object of objects) {
+                object.workspace = this;
+            }
+        }
     }
 
     static load(dir_path, callback) {
