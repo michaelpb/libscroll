@@ -3,6 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const ScrollWorkspace = require('../../mods/workspace/ScrollWorkspace');
 const PATH_PREFIX = path.resolve(path.join(__dirname, "..", "data"));
+const fixtures = require('../support/fixtures');
 
 describe('ScrollWorkspace', () => {
     it('instantiates an empty instance', () => {
@@ -39,5 +40,24 @@ describe('ScrollWorkspace', () => {
             expect(result).toEqual(null);
             done();
         });
+    });
+
+    it('has methods get and get_all that searches for scroll objects', () => {
+        let tag;
+        let tags;
+        const workspace = fixtures.make_workspace();
+        tag = workspace.objects.get('blockquote');
+        expect(tag).toBeTruthy();
+        expect(tag.name).toEqual('blockquote');
+        tag = workspace.objects.get('nonexistant');
+        expect(tag).toBeNull();
+
+        tags = workspace.objects.get_all('blockquote');
+        expect(tags.length).toEqual(1);
+        expect(tags[0].name).toEqual('blockquote');
+        tags = workspace.objects.get_all('nonexistant');
+        expect(tags.length).toEqual(0);
+        tags = workspace.objects.get_all('namespace:default');
+        expect(tags.length).toEqual(6);
     });
 });

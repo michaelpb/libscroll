@@ -35,7 +35,9 @@ class Document extends ScrollObject {
             workspace.read(relpath, data => {
                 const info = {document: {contents: data.toString()}};
                 const doc = new Document(info);
+                // TODO
                 doc.workspace = workspace;
+                doc.path = relpath;
                 callback(doc);
             });
         }

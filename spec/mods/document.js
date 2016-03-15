@@ -22,7 +22,8 @@ describe('Document', () => {
             'inline <in class="default_emphasis">',
             'stuff</in> ', 'to see</in>', '</bk>',
             '<bk class="default_section" data="## section">', '<h1>', ' section</h1>', '</bk>',
-            '<bk class="default_para" data="para 3">', 'para 3</bk>',].join("");
+            '<bk class="default_para" data="para 3">', 'para 3</bk>',
+        ].join('');
 
         expect(doc.actions.render()).toEqual(EXPECTED);
     });

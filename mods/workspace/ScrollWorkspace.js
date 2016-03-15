@@ -24,13 +24,20 @@ class ObjectContainer extends Array {
         }
     }
 
+    /*
+     * Finds a object with the given matching string
+     */
     get(matching_string) {
-        const matcher = ObjectMatcher(matching_string);
-        return this.find(object => matcher.match(object));
+        const matcher = new ObjectMatcher(matching_string);
+        const result = this.find(object => matcher.match(object));
+        if (!result) {
+            return null;
+        }
+        return result;
     }
 
     get_all(matching_string) {
-        const matcher = ObjectMatcher(matching_string);
+        const matcher = new ObjectMatcher(matching_string);
         return this.filter(object => matcher.match(object));
     }
 }
