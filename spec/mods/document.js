@@ -10,6 +10,19 @@ describe('Document', () => {
         expect(doc.contents).toEqual('test stuff');
     });
 
+    it('actions rendering to default works', () => {
+        const workspace = fixtures.make_workspace();
+        const doc = workspace.objects.document[0];
+        const EXPECTED = [
+            '<div class="default_para">para 1 some </div>',
+            '&mdash; sy &lt; mb &gt;ols<div class="default_para">para 2\n',
+            'continued nested </div><span class="default_strong">inline ',
+            '</span><span class="default_emphasis">stuff</span> to see<h1> ',
+            'section</h1><div class="default_para">para 3</div>',
+        ].join('');
+        expect(doc.actions.render()).toEqual(EXPECTED);
+    });
+
     it('actions rendering to editor HTML works', () => {
         const workspace = fixtures.make_workspace();
         const doc = workspace.objects.document[0];
@@ -25,7 +38,7 @@ describe('Document', () => {
             '<bk class="default_para" data="para 3">', 'para 3</bk>',
         ].join('');
 
-        expect(doc.actions.render()).toEqual(EXPECTED);
+        expect(doc.actions.render('editor')).toEqual(EXPECTED);
     });
 });
 

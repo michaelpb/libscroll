@@ -37,7 +37,8 @@ exports.load_parser = function (cb, opts = {}) {
             throw new Error('Cannot complete test: Too few tags: ' + tags.length);
         }
         const parser = new ScrollMarkdownParser(tags, opts);
-        parser.compile(() => cb(parser));
+        cb(parser);
+        // parser.compile(() => cb(parser));
     });
 };
 
@@ -48,9 +49,9 @@ exports.load_edit_renderer = function (opts, cb) {
     }
     exports.load_parser(function (parser) {
         var renderer = new EditorRenderer(parser.tags, opts);
-        renderer.compile(function () {
-            cb(parser, renderer);
-        });
+        cb(parser, renderer);
+        /*renderer.compile(function () {
+        });*/
     }, popts);
 };
 
@@ -65,7 +66,7 @@ exports.load_structure_parser = function (callback) {
     exports.load_tags(tags => {
         exports.load_structure({}, structure => {
             const parser = new StructuredParser(tags, structure, opts);
-            parser.compile(() => callback(parser));
+            callback(parser);
         });
     });
 };
@@ -75,7 +76,7 @@ exports.load_tree_parser = function (callback) {
     exports.load_tags(tags => {
         exports.load_structure({}, structure => {
             const parser = new TreeParser(tags, structure, opts);
-            parser.compile(() => callback(parser));
+            callback(parser);
         });
     });
 };
@@ -84,7 +85,8 @@ exports.load_style_renderer = function (opts, cb) {
     const {style} = opts;
     exports.load_tree_parser(parser => {
         const renderer = new StyleRenderer(parser.tags, style, opts);
-        renderer.compile(() => cb(parser, renderer));
+        cb(parser, renderer);
+        // renderer.compile(() => cb(parser, renderer));
     }, opts);
 };
 

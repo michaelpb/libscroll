@@ -4,12 +4,12 @@ const lodash = require('underscore');
 const schemaconf = require('schemaconf');
 
 const {LEFT_EARLIER, LEFT_HIGHER, EQUAL, RIGHT_EARLIER, RIGHT_HIGHER,
-    UNRANKED} = require('../../lib/parser/constants');
+    UNRANKED, ROOT} = require('../../lib/parser/constants');
 
 // Pull in tag schema
 const SCHEMA = require('./schemas').structure;
 const CONFSCHEMA = new schemaconf.ConfSchema(
-    SCHEMA, {"no_exceptions": true});
+    SCHEMA, {'no_exceptions': true});
 
 class Structure extends ScrollObject {
     constructor(info) {
@@ -31,7 +31,11 @@ class Structure extends ScrollObject {
     }
 
     static get ROOT() {
-        return {name: "root", namespace: ""};
+        return ROOT;
+    }
+
+    static get EMPTY_STRUCTURE() {
+        return new Structure({structure: {}});
     }
 
     static cmp(a, b) {
@@ -70,7 +74,7 @@ class Structure extends ScrollObject {
         const sparse_matchers = [];
         for (let index in obj) {
             let index_val = parseInt(index);
-            if (index_val === NaN) { throw "invalid structure:" + index; }
+            if (index_val === NaN) { throw 'invalid structure:' + index; }
             sparse_matchers.push([obj[index], index_val]);
         }
 
@@ -81,9 +85,9 @@ class Structure extends ScrollObject {
         var matchers = sparse_matchers.map(v => v[0]);
         var matchers_length = matchers.length;
 
-        // return "structure matcher"
+        // return 'structure matcher'
         return (taginfo) => {
-            if (taginfo === Structure.ROOT) {
+            if (taginfo === ROOT) {
                 return UNRANKED; // unranked
             }
 
@@ -108,19 +112,19 @@ class Structure extends ScrollObject {
 
     _prep_tags(tag_a, tag_b) {
         /*
-        if (typeof tag_a.sclass === "undefined") {
+        if (typeof tag_a.sclass === 'undefined') {
             this._attach_classes(tag_a);
         }
 
-        if (typeof tag_b.sclass === "undefined") {
+        if (typeof tag_b.sclass === 'undefined') {
             this._attach_classes(tag_b);
         }
         */
     }
 
     filter_ordering(tag_context, taglist) {
-        // Returns "what can come after" tag_context
-        /// xxx actually need to check if "directly proceed"
+        // Returns 'what can come after' tag_context
+        /// xxx actually need to check if 'directly proceed'
         return taglist.all_tags.filter(lodash.bind(function (tag) {
             var order = this.order_cmp(tag_context, tag);
             return order === LEFT_EARLIER ||
