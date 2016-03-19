@@ -4,6 +4,16 @@ const Tag = require('../../mods/document/Tag');
 const helpers = require('../support/helpers');
 const fixtures = require('../support/fixtures');
 
+const normalize = s => s.split(".").sort().join(".");
+const EXPECTED_CSS = normalize([
+    '.default_blockquote { display: block; background: gray;} ',
+    '.default_emphasis { text-variation: italic;} ',
+    '.default_para { display: block; padding: 3px;} ',
+    '.default_para > bk { display: inline;} ',
+    '.default_para html { display: none;} ',
+    '.default_section { display: block; font-size: 24pt;} ',
+    '.default_strong { display: block; font-weight: bold;} '].join(''));
+
 describe('Document', () => {
     it('instantiates', () => {
         const doc = new Document({document: {contents: 'test stuff'}});
@@ -21,6 +31,12 @@ describe('Document', () => {
             'section</h1><div class="default_para">para 3</div>',
         ].join('');
         expect(doc.actions.render()).toEqual(EXPECTED);
+    });
+
+    it('actions rendering CSS to default works', () => {
+        const workspace = fixtures.make_workspace();
+        const doc = workspace.objects.document[0];
+        expect(normalize(doc.actions.rendercss())).toEqual(EXPECTED_CSS);
     });
 
     it('actions rendering to editor HTML works', () => {
@@ -52,18 +68,8 @@ describe('Tag', () => {
             });
         });
 
-        const expected_css = [
-            '.default_blockquote { display: block; background: gray;} ',
-            '.default_emphasis { text-variation: italic;} ',
-            '.default_para { display: block; padding: 3px;} ',
-            '.default_para > bk { display: inline;} ',
-            '.default_para html { display: none;} ',
-            '.default_section { display: block; font-size: 24pt;} ',
-            '.default_strong { display: block; font-weight: bold;} '].join('');
-
         it('renders combined CSS', () => {
-            const normalize = s => s.split(".").sort().join(".");
-            expect(normalize(expected_css))
+            expect(normalize(EXPECTED_CSS))
                 .toEqual(normalize(Tag.render_css(tags)));
         });
     });

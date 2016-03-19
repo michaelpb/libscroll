@@ -10,6 +10,7 @@ const {EditorRenderer, StyleRenderer} = require('../../lib/renderer');
 const Style = require('../style/Style');
 const Structure = require('../style/Structure');
 const ScrollObject = require('../../lib/ScrollObject');
+const Tag = require('./Tag');
 const async = require('async');
 
 const NOOP = () => {};
@@ -19,6 +20,9 @@ const ACTIONS = {
         const renderer = this.new_renderer(render_target, style_name);
         const parser = this.new_parser(render_target, structure_name);
         return renderer.render_to_string(this.contents, parser);
+    },
+    rendercss: function (render_target = 'default') {
+        return Tag.render_css(this.workspace.objects.tag, render_target);
     },
 };
 
