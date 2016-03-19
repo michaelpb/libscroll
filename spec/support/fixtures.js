@@ -168,7 +168,12 @@ function make_document(workspace) {
 }
 
 function make_tags() {
-    return TAGS.map(tag_info => new Tag(tag_info));
+    return TAGS.map(info =>
+        new Tag(info, {
+            name: info._name,
+            namespace: info._namespace,
+            path: `tag/${info._name}.cfg`,
+        }));
 }
 
 function make_workspace() {

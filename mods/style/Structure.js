@@ -12,9 +12,9 @@ const CONFSCHEMA = new schemaconf.ConfSchema(
     SCHEMA, {'no_exceptions': true});
 
 class Structure extends ScrollObject {
-    constructor(info) {
-        super(info);
-        this.structure = info.structure;
+    constructor(...args) {
+        super(...args);
+        this.structure = this.info.structure;
 
         // Create matchers based on structure
         this.get_ordering_index = this._make_matcher(this.structure.ordering);

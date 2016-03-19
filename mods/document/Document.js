@@ -23,9 +23,9 @@ const ACTIONS = {
 };
 
 class Document extends ScrollObject {
-    constructor(info) {
-        super(info);
-        this.contents = info.document.contents;
+    constructor(...args) {
+        super(...args);
+        this.contents = this.info.document.contents;
     }
 
     static load(workspace, relpath, callback) {
@@ -34,10 +34,13 @@ class Document extends ScrollObject {
         } else {
             workspace.read(relpath, data => {
                 const info = {document: {contents: data.toString()}};
-                const doc = new Document(info);
+
+                // TODO
+                const meta = {path: relpath, name: 'document', namespace: 'default'};
+                const doc = new Document(info, meta);
                 // TODO
                 doc.workspace = workspace;
-                doc.path = relpath;
+                // doc.path = relpath;
                 callback(doc);
             });
         }

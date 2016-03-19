@@ -22,8 +22,8 @@ class Tag extends ScrollObject {
         return CONFSCHEMA;
     }
 
-    constructor(info) {
-        super(info);
+    constructor(...args) {
+        super(...args);
 
         // Get info, like we would find in a tag_name.cfg file
         this.tag_class = this.namespace + '_' + this.name;
@@ -35,7 +35,9 @@ class Tag extends ScrollObject {
         } else {
             this.contains = [];
         }
-        this.meta = this.info.tag;
+
+        // v-- remove me
+        // this.meta = this.info.tag;
         this._prepare();
     };
 

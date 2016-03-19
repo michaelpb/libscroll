@@ -64,7 +64,7 @@ class ObjectContainer extends Array {
 
 class ScrollWorkspace extends ScrollObject {
     constructor(base_path, objects, is_partial = false) {
-        super();
+        super({}, {path: base_path});
         this.objects = new ObjectContainer(objects);
         this.base_path = base_path;
         this.is_partial = is_partial; // true, if only partially loaded

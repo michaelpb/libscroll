@@ -5,10 +5,12 @@ const ScrollObject = require('../../lib/ScrollObject');
 const SCHEMA = require('./schemas').style;
 
 class Style extends ScrollObject {
-    constructor(info) {
-        super(info);
+    constructor(...args) {
+        super(...args);
         this.templates = null;
-        this.meta = this.info.style;
+
+        // v-- remove me
+        // this.meta = this.info.style;
     }
 
     static get EMPTY_STYLE() {
