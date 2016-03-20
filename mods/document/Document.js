@@ -93,6 +93,17 @@ class Document extends ScrollObject {
         return new TreeParser(tags, structure);
     }
 
+    editor_render(fragment, refresh = false, emit_source = false) {
+        if (refresh || !this.editor_renderer) {
+            const tags = this.workspace.objects.tag;
+            // Set up editor renderer and parser
+            this.editor_renderer = new EditorRenderer(tags);
+            this.editor_parser =
+                new ScrollMarkdownParser(tags, {emit_source: false});
+        }
+        return this.editor_renderer.render_to_string(fragment, this.editor_parser);
+    }
+
     get _actions() {
         return ACTIONS;
     }
