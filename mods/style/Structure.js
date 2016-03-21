@@ -1,5 +1,6 @@
 'use strict';
 const ScrollObject = require('../../lib/ScrollObject');
+const {ObjectMatcher} = require('../../lib/objectmatcher');
 const lodash = require('underscore');
 const schemaconf = require('schemaconf');
 
@@ -42,6 +43,33 @@ class Structure extends ScrollObject {
         return  a === b ? EQUAL
                 : a > b ? RIGHT_HIGHER
                 : LEFT_HIGHER;
+    }
+
+    /*
+     * Generates a new default Structure based on containment hierarchy rules
+     * from the markdown specification found within tags
+     */
+    static new_from_containment(tags) {
+        const ordering = {}; // maintain ordering
+
+        // Create simple hierarchy of blocks are siblings and contain all
+        // inlines
+        const is_block_container = tags
+            .filter(tag => tag.info.markdown.block_container)
+            .map(tag => `exact:${tag.fullname}`);
+        const is_block = tags
+            .filter(tag => tag.info.markdown.type === 'block')
+            .map(tag => `exact:${tag.fullname}`);
+        const is_inline = tags
+            .filter(tag => tag.info.markdown.type !== 'block')
+            .map(tag => `exact:${tag.fullname}`);
+        const hierarchy = {
+            // h0: new ObjectMatcher(is_block_container.join(' ')),
+            h1: new ObjectMatcher(is_block.join(' ')),
+            h2: new ObjectMatcher(is_inline.join(' ')),
+        };
+        return new Structure({structure: {hierarchy, ordering}},
+            {name: 'markdown', namespace: 'autogen', path: ''});
     }
 
     /******* Compare tag_a's and tag_b's ordering */

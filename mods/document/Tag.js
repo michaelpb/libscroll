@@ -78,6 +78,7 @@ class Tag extends ScrollObject {
     }
 
     static render_css(tags, target) {
+        // return tags.map(tag => tag.get('css', target)).join('\n');
         return tags.map(tag => tag.get('css', target)).join('');
     }
 

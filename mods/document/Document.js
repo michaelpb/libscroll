@@ -6,6 +6,7 @@ The Document class encapsulates a single Document. A scroll workspace (e.g.
 
 const ScrollMarkdownParser = require('../../lib/parser/ScrollMarkdownParser');
 const TreeParser = require('../../lib/parser/TreeParser');
+const UnstructuredTreeParser = require('../../lib/parser/UnstructuredTreeParser');
 const {EditorRenderer, StyleRenderer} = require('../../lib/renderer');
 const Style = require('../style/Style');
 const Structure = require('../style/Structure');
@@ -81,7 +82,11 @@ class Document extends ScrollObject {
         }
 
         let structure;
-        if (structure_name === null) {
+        if (structure_name === null || structure_name === '_unstructured') {
+            return new UnstructuredTreeParser(tags);
+        } if (structure_name === '_markdown') {
+            structure = Structure.new_from_containment(tags);
+        } else if (structure_name === '_empty') {
             structure = Structure.EMPTY_STRUCTURE;
         } else {
             structure = this.workspace.get(structure_name);
@@ -99,7 +104,7 @@ class Document extends ScrollObject {
             // Set up editor renderer and parser
             this.editor_renderer = new EditorRenderer(tags);
             this.editor_parser =
-                new ScrollMarkdownParser(tags, {emit_source: false});
+                new ScrollMarkdownParser(tags, {emit_source: emit_source});
         }
         return this.editor_renderer.render_to_string(fragment, this.editor_parser);
     }

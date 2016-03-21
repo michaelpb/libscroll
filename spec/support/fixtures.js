@@ -161,6 +161,53 @@ const TAGS = [
     }
 ];
 
+// while TAGS is more typical, TAGS PARSING is for more tricky parsing situations
+const TAGS_PARSING = [
+    {
+        "tag": { "name": "Para", "class": [ "text" ] },
+        "markdown": {
+            "block_default": true,
+            "contains": ["style"],
+            "type": "block"
+        },
+        "symbol": {},
+        "_name": "para",
+    },
+    {
+        "tag": { "name": "Section", "class": [ "header" ] },
+        "markdown": {
+            "block_prefix": "##",
+            "contains": ["simplestyle"],
+            "type": "block",
+            "block_default": false
+        },
+        "symbol": {},
+        "_name": "section",
+    },
+    {
+        "tag": { "name": "Sub-section", "class": [ "header" ] },
+        "markdown": {
+            "block_prefix": "###",
+            "contains": ["simplestyle"],
+            "type": "block",
+            "block_default": false
+        },
+        "symbol": {},
+        "_name": "subsection",
+    },
+    {
+        "tag": { "name": "Strong", "class": [ "style" ] },
+        "markdown": {
+            "markdown": "*$*",
+            "contains": [ "style" ],
+            "block_default": false,
+            "type": "inline"
+        },
+        "symbol": {},
+        "_name": "strong",
+    },
+];
+
 function make_document(workspace) {
     const new_doc = new Document({document: {contents: TEXT}});
     new_doc.workspace = workspace;
@@ -176,6 +223,15 @@ function make_tags() {
         }));
 }
 
+function make_tags_parsing() {
+    return TAGS_PARSING.map(info =>
+        new Tag(info, {
+            name: info._name,
+            namespace: "default",
+            path: `tag/${info._name}.cfg`,
+        }));
+}
+
 function make_workspace() {
     const tags = make_tags();
     const partial_workspace = new ScrollWorkspace('', tags);
@@ -183,8 +239,9 @@ function make_workspace() {
         ...tags,
         make_document(partial_workspace),
     ]);
-
     return workspace;
 }
 
 module.exports.make_workspace = make_workspace;
+module.exports.make_tags_parsing = make_tags_parsing;
+module.exports.make_tags = make_tags;

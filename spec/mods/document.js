@@ -10,7 +10,7 @@ const EXPECTED_CSS = normalize([
     '.default_emphasis { text-variation: italic;} ',
     '.default_para { display: block; padding: 3px;} ',
     '.default_para > bk { display: inline;} ',
-    '.default_para html { display: none;} ',
+    '.default_para html { display: none;} ', // check prevents breakage
     '.default_section { display: block; font-size: 24pt;} ',
     '.default_strong { display: block; font-weight: bold;} '].join(''));
 
@@ -24,10 +24,10 @@ describe('Document', () => {
         const workspace = fixtures.make_workspace();
         const doc = workspace.objects.document[0];
         const EXPECTED = [
-            '<div class="default_para">para 1 some </div>',
-            '&mdash; sy &lt; mb &gt;ols<div class="default_para">para 2\n',
-            'continued nested </div><span class="default_strong">inline ',
-            '</span><span class="default_emphasis">stuff</span> to see<h1> ',
+            '<div class="default_para">para 1 some ',
+            '&mdash; sy &lt; mb &gt;ols</div><div class="default_para">para 2\n',
+            'continued nested <span class="default_strong">inline ',
+            '<span class="default_emphasis">stuff</span> to see</span></div><h1> ',
             'section</h1><div class="default_para">para 3</div>',
         ].join('');
         expect(doc.actions.render()).toEqual(EXPECTED);

@@ -1,157 +1,195 @@
 'use strict';
 const helpers = require('../support/helpers');
+const fixtures = require('../support/fixtures');
 const REV = require('../../lib/parser/constants').REVERSED;
+const ScrollMarkdownParser = require('../../lib/parser/ScrollMarkdownParser');
+const UnstructuredTreeParser = require('../../lib/parser/UnstructuredTreeParser');
 
 describe('ScrollMarkdownParser', () => {
     let parser;
-
-    beforeEach((done) => {
-        helpers.load_parser(loaded_parser => {
-            parser = loaded_parser;
-            done();
-        });
-    });
 
     afterEach(() => {
         parser = null;
     });
 
-    it('should trim whitespace', (done) => {
-        // the parser should trim whitespace by default
-        const text = [
-            "",
-            "## section",
-            "",
-            "   a paragraph  ",
-            "",
-        ].join("\n");
-        const result = [
-            ["OPEN_TAG", "section"],
-                ["TEXT", " section"],
-            ["CLOSE_TAG", "section"],
-            ["OPEN_TAG", "para"],
-                ["TEXT", "a paragraph"],
-            ["CLOSE_TAG", "para"],
-        ];
+    describe('with tags with more edge cases', () => {
+        beforeEach(() => {
+            const tags = fixtures.make_tags_parsing();
+            parser = new ScrollMarkdownParser(tags);
+        });
+        it('distinguishes block prefixes', (done) => {
+            // the parser should trim whitespace by default
+            const text = [
+                "",
+                "## section",
+                "",
+                "a paragraph",
+                "",
+                "### subsection",
+                "",
+            ].join("\n");
+            const result = [
+                ["OPEN_TAG", "section"], ["TEXT", " section"], ["CLOSE_TAG", "section"],
+                ["OPEN_TAG", "para"], ["TEXT", "a paragraph"], ["CLOSE_TAG", "para"],
+                ["OPEN_TAG", "subsection"], ["TEXT", " subsection"], ["CLOSE_TAG", "subsection"],
+            ];
 
-        const contents = [];
-        parser.parse(text, (type, tag, value) => {
-            contents.push([REV[type], tag ? tag.name : value]);
-        }, () => {
-            expect(result).toEqual(contents);
-            done();
+            const contents = [];
+            parser.parse(text, (type, tag, value) => {
+                // console.log(type, tag, value);
+                contents.push([REV[type], tag ? tag.name : value]);
+            }, () => {
+                expect(result).toEqual(contents);
+                done();
+            });
         });
     });
 
-    it('parses more complicated document', (done) => {
-        // more complicated example
-        const text = [
-            "## section",
-            "",
-            "para 1 some -- sy < mb >ols",
-            "",
-            "para 2",
-            "continued nested *inline u{stuff} to see*",
-            "",
-            "## section",
-            "",
-            "para 3",
-        ].join("\n");
-
-        const result = [
-            ["OPEN_TAG", "section"],
-                ["TEXT", " section"],
-            ["CLOSE_TAG", "section"],
-            ["OPEN_TAG", "para"],
-                ["TEXT", "para 1 some "],
-                    ["OPEN_TAG", "emdash"],
-                    ["CLOSE_TAG", "emdash"],
-                ["TEXT", " sy < mb >ols"],
-            ["CLOSE_TAG", "para"],
-            ["OPEN_TAG", "para"],
-                ["TEXT", "para 2\ncontinued nested "],
-                    ["OPEN_TAG", "strong"],
-                        ["TEXT", "inline "],
-                        ["OPEN_TAG", "emphasis"],
-                            ["TEXT", "stuff"],
-                        ["CLOSE_TAG", "emphasis"],
-                        ["TEXT", " to see"],
-                    ["CLOSE_TAG", "strong"],
-            ["CLOSE_TAG", "para"],
-            ["OPEN_TAG", "section"],
-                ["TEXT", " section"],
-            ["CLOSE_TAG", "section"],
-            ["OPEN_TAG", "para"],
-                ["TEXT", "para 3"],
-            ["CLOSE_TAG", "para"],
-        ];
-
-        const contents = [];
-        parser.parse(text, function (type, tag, value) {
-            contents.push([REV[type], tag ? tag.name : value]);
-        }, function () {
-            expect(result).toEqual(contents);
-            done();
+    describe('with standard loaded tags', () => {
+        beforeEach((done) => {
+            helpers.load_parser(loaded_parser => {
+                parser = loaded_parser;
+                done();
+            });
         });
-    });
 
-    it('parses XML style tags', (done) => {
-        // more complicated example with XML style tags
-        const text = [
-            "<section>",
-            " section",
-            "</section><default_para>",
-            "para 1 some -- sy < mb >ols",
-            "</default_para>"+
-            "para 2",
-            "continued nested "+
-            "<strong>",
-            "inline "+
-            "<emphasis>",
-            "stuff",
-            "</emphasis> to see",
-            "</strong>",
-            "",
-            "## section",
-            "",
-            "para 3",
-        ].join("\n");
+        it('should trim whitespace', (done) => {
+            // the parser should trim whitespace by default
+            const text = [
+                "",
+                "## section",
+                "",
+                "   a paragraph  ",
+                "",
+            ].join("\n");
+            const result = [
+                ["OPEN_TAG", "section"],
+                    ["TEXT", " section"],
+                ["CLOSE_TAG", "section"],
+                ["OPEN_TAG", "para"],
+                    ["TEXT", "a paragraph"],
+                ["CLOSE_TAG", "para"],
+            ];
 
-        const result = [
-            ["OPEN_TAG", "section"],
-                ["TEXT", " section"],
-            ["CLOSE_TAG", "section"],
-            ["OPEN_TAG", "para"],
-                ["TEXT", "para 1 some "],
-                    ["OPEN_TAG", "emdash"],
-                    ["CLOSE_TAG", "emdash"],
-                ["TEXT", " sy < mb >ols"],
-            ["CLOSE_TAG", "para"],
-            ["OPEN_TAG", "para"],
-                ["TEXT", "para 2\ncontinued nested "],
-                    ["OPEN_TAG", "strong"],
-                        ["TEXT", "inline "],
-                        ["OPEN_TAG", "emphasis"],
-                            ["TEXT", "stuff"],
-                        ["CLOSE_TAG", "emphasis"],
-                        ["TEXT", " to see"],
-                    ["CLOSE_TAG", "strong"],
-            ["CLOSE_TAG", "para"],
-            ["OPEN_TAG", "section"],
-                ["TEXT", " section"],
-            ["CLOSE_TAG", "section"],
-            ["OPEN_TAG", "para"],
-                ["TEXT", "para 3"],
-            ["CLOSE_TAG", "para"],
-        ];
+            const contents = [];
+            parser.parse(text, (type, tag, value) => {
+                contents.push([REV[type], tag ? tag.name : value]);
+            }, () => {
+                expect(result).toEqual(contents);
+                done();
+            });
+        });
 
-        const contents = [];
-        parser.parse(text, (type, tag, value) => {
-            contents.push([REV[type], tag ? tag.name : value]);
-        }, () => {
-            //helpers.tokens_side_by_side(result, contents);
-            expect(result).toEqual(contents);
-            done();
+        it('parses more complicated document', (done) => {
+            // more complicated example
+            const text = [
+                "## section",
+                "",
+                "para 1 some -- sy < mb >ols",
+                "",
+                "para 2",
+                "continued nested *inline u{stuff} to see*",
+                "",
+                "## section",
+                "",
+                "para 3",
+            ].join("\n");
+
+            const result = [
+                ["OPEN_TAG", "section"],
+                    ["TEXT", " section"],
+                ["CLOSE_TAG", "section"],
+                ["OPEN_TAG", "para"],
+                    ["TEXT", "para 1 some "],
+                        ["OPEN_TAG", "emdash"],
+                        ["CLOSE_TAG", "emdash"],
+                    ["TEXT", " sy < mb >ols"],
+                ["CLOSE_TAG", "para"],
+                ["OPEN_TAG", "para"],
+                    ["TEXT", "para 2\ncontinued nested "],
+                        ["OPEN_TAG", "strong"],
+                            ["TEXT", "inline "],
+                            ["OPEN_TAG", "emphasis"],
+                                ["TEXT", "stuff"],
+                            ["CLOSE_TAG", "emphasis"],
+                            ["TEXT", " to see"],
+                        ["CLOSE_TAG", "strong"],
+                ["CLOSE_TAG", "para"],
+                ["OPEN_TAG", "section"],
+                    ["TEXT", " section"],
+                ["CLOSE_TAG", "section"],
+                ["OPEN_TAG", "para"],
+                    ["TEXT", "para 3"],
+                ["CLOSE_TAG", "para"],
+            ];
+
+            const contents = [];
+            parser.parse(text, function (type, tag, value) {
+                contents.push([REV[type], tag ? tag.name : value]);
+            }, function () {
+                expect(result).toEqual(contents);
+                done();
+            });
+        });
+
+        it('parses XML style tags', (done) => {
+            // more complicated example with XML style tags
+            const text = [
+                "<section>",
+                " section",
+                "</section><default_para>",
+                "para 1 some -- sy < mb >ols",
+                "</default_para>"+
+                "para 2",
+                "continued nested "+
+                "<strong>",
+                "inline "+
+                "<emphasis>",
+                "stuff",
+                "</emphasis> to see",
+                "</strong>",
+                "",
+                "## section",
+                "",
+                "para 3",
+            ].join("\n");
+
+            const result = [
+                ["OPEN_TAG", "section"],
+                    ["TEXT", " section"],
+                ["CLOSE_TAG", "section"],
+                ["OPEN_TAG", "para"],
+                    ["TEXT", "para 1 some "],
+                        ["OPEN_TAG", "emdash"],
+                        ["CLOSE_TAG", "emdash"],
+                    ["TEXT", " sy < mb >ols"],
+                ["CLOSE_TAG", "para"],
+                ["OPEN_TAG", "para"],
+                    ["TEXT", "para 2\ncontinued nested "],
+                        ["OPEN_TAG", "strong"],
+                            ["TEXT", "inline "],
+                            ["OPEN_TAG", "emphasis"],
+                                ["TEXT", "stuff"],
+                            ["CLOSE_TAG", "emphasis"],
+                            ["TEXT", " to see"],
+                        ["CLOSE_TAG", "strong"],
+                ["CLOSE_TAG", "para"],
+                ["OPEN_TAG", "section"],
+                    ["TEXT", " section"],
+                ["CLOSE_TAG", "section"],
+                ["OPEN_TAG", "para"],
+                    ["TEXT", "para 3"],
+                ["CLOSE_TAG", "para"],
+            ];
+
+            const contents = [];
+            parser.parse(text, (type, tag, value) => {
+                contents.push([REV[type], tag ? tag.name : value]);
+            }, () => {
+                //helpers.tokens_side_by_side(result, contents);
+                expect(result).toEqual(contents);
+                done();
+            });
         });
     });
 });
@@ -314,6 +352,61 @@ describe('TreeParser', () => {
             // TODO for some reason, plain comparisons don't work, only stringify does, wtf
             expect(JSON.stringify(result)).toEqual(JSON.stringify(EXPECTED_TREE));
             done();
+        });
+    });
+});
+
+describe('UnstructuredTreeParser', () => {
+    let parser = null;
+    afterEach(() => {
+        parser = null;
+    });
+
+    describe('with tags with more edge cases', () => {
+        beforeEach(() => {
+            const tags = fixtures.make_tags_parsing();
+            parser = new UnstructuredTreeParser(tags);
+        });
+        it('handles different structures', (done) => {
+            // the parser should trim whitespace by default
+            const text = [
+                "",
+                "## section",
+                "",
+                "a paragraph *with some text* and *some more text*",
+                "",
+                "### subsection",
+                "",
+            ].join("\n");
+
+            const EXPECTED_TREE = {
+                "is_text": false, "tag": "root", "parent": null,
+                "children": [
+                    { "is_text": false, "tag": "section", "parent": "root", "children": [
+                        { "is_text": true, "text": " section", "parent": "section" } ] },
+                    { "is_text": false, "tag": "para", "parent": "root", "children": [
+                        { "is_text": true, "text": "a paragraph ", "parent": "para" },
+                        { "is_text": false, "tag": "strong", "parent": "para", "children": [
+                            { "is_text": true, "text": "with some text", "parent": "strong" } ] },
+                        { "is_text": true, "text": " and ", "parent": "para" },
+                        { "is_text": false, "tag": "strong", "parent": "para", "children": [
+                                { "is_text": true, "text": "some more text", "parent": "strong" }
+                            ] } ] },
+                    { "is_text": false, "tag": "subsection", "parent": "root", "children": [
+                        { "is_text": true, "text": " subsection", "parent": "subsection" } ] }
+                ],
+            };
+
+            parser.parse(text, (type, tag, value) => {
+                // console.log(type, tag, value);
+                // contents.push([REV[type], tag ? tag.name : value]);
+            }, (result) => {
+                helpers.ast_strip_tags(result);
+                result = JSON.parse(JSON.stringify(result));
+                // helpers.tokens_side_by_side(result, contents);
+                expect(result).toEqual(EXPECTED_TREE);
+                done();
+            });
         });
     });
 });
