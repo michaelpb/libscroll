@@ -4,5 +4,12 @@
 
 -------------------------
 
-Nothing to see here WIP
+**Not much to see here.**
+
+This is the core library for the very immature Scroll Editor, a
+work-in-progress free software document processing system.
+
+* Graphical version: http://bitbucket.org/michaelb/scrolleditor/
+
+* CLI version: http://bitbucket.org/michaelb/scrollcli/
 
