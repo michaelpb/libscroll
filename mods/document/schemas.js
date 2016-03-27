@@ -1,4 +1,4 @@
-const Types = require('schemaconf').Types;
+const {Types} = require('schemaconf');
 
 module.exports.tag = {
     "tag": {
@@ -68,6 +68,20 @@ module.exports.tag = {
             },
             html: false,
             css: false,
+        },
+    },
+
+    "processor": {
+        singular: false,
+        required: false,
+        values: {
+            name: true,
+            // For now, no targetting for processors
+            target: {
+                type: Types.wordlist,
+                required: false, 
+            },
+            options: false,
         },
     },
 };

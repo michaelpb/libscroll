@@ -1,16 +1,15 @@
 'use strict';
-const MathJaxTagRenderer = require('../../lib/tagrenderer/mathjax');
-const KatexTagRenderer = require('../../lib/tagrenderer/katex');
-const HighlightRenderer = require('../../lib/tagrenderer/highlight');
-const TreeNode = require('../../lib/parser/TreeNode');
+const MathJaxTagProcessor = require('../../lib/tagprocessor/mathjax');
+const KatexTagProcessor = require('../../lib/tagprocessor/katex');
+const HighlightTagProcessor = require('../../lib/tagprocessor/highlight');
 const helpers = require('../support/helpers');
 const fixtures = require('../support/fixtures');
 
 // permanently disable, so it doesnt even show up:
 const skipped_it = () => {};
 
-describe('TagRenderer', () => {
-    describe('MathJax Renderer', () => {
+describe('TagProcessor', () => {
+    describe('MathJax Processor', () => {
         let originalTimeout;
         beforeEach(() => {
             originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
@@ -25,12 +24,9 @@ describe('TagRenderer', () => {
         skipped_it('renders a basic LaTeX formula', (done) => {
             const workspace = fixtures.make_workspace();
             const tag = workspace.objects.tag[0];
-            const mjr = new MathJaxTagRenderer(tag);
-            const outer_tag = new TreeNode(tag, null);
-            const inner_text = new TreeNode('\\sqrt{f}');
-            outer_tag.children.push(inner_text);
+            const mjr = new MathJaxTagProcessor(tag);
 
-            mjr.render(outer_tag, result => {
+            mjr.render('\\sqrt{f}', result => {
                 expect(result).toMatch(/^\s*<svg/);
                 expect(result).toMatch(/svg>$/);
                 expect(result).toMatch(/\<path stroke-width/);
@@ -41,11 +37,11 @@ describe('TagRenderer', () => {
         });
     });
 
-    describe('Highlight.js Renderer', () => {
+    describe('Highlight.js Processor', () => {
         it('renders simple HTML higlighting', (done) => {
             const workspace = fixtures.make_workspace();
             const tag = workspace.objects.tag[0];
-            const hlr = new HighlightRenderer(tag);
+            const hlr = new HighlightTagProcessor(tag);
             const EXAMPLE_HTML = [
                 '<!DOCTYPE html>',
                 '<title>Title</title>',
@@ -58,27 +54,20 @@ describe('TagRenderer', () => {
                 '&lt;style>body {width: <span class="number">500</span>px;}&lt;/style>',
                 '&lt;body>&lt;p checked <span class="keyword">class</span>=<span class="string">"title"</span> id=<span class="string">"title"</span>>Title&lt;/p>&lt;/body>',
             ].join('\n');
-            const inner_text = new TreeNode(EXAMPLE_HTML);
-            const outer_tag = new TreeNode(tag, null);
-            outer_tag.children.push(inner_text);
 
-            hlr.render(outer_tag, result => {
+            hlr.render(EXAMPLE_HTML, result => {
                 expect(result).toEqual(EXPECTED);
                 done();
             });
         });
     });
 
-    describe('KaTeX Renderer', () => {
+    describe('KaTeX Processor', () => {
         it('renders a basic LaTeX formula', (done) => {
             const workspace = fixtures.make_workspace();
             const tag = workspace.objects.tag[0];
-            const mjr = new KatexTagRenderer(tag);
-            const outer_tag = new TreeNode(tag, null);
-            const inner_text = new TreeNode('\\sqrt{f}');
-            outer_tag.children.push(inner_text);
-
-            mjr.render(outer_tag, result => {
+            const mjr = new KatexTagProcessor(tag);
+            mjr.render('\\sqrt{f}', result => {
                 expect(result).toMatch(/^\s*<span class="katex">/);
                 expect(result).toMatch(/span>$/);
                 expect(result).toContain('√');

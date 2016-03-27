@@ -158,6 +158,30 @@ const TAGS = [
         "symbol": {},
         "_name": "strong",
         "_namespace": "default"
+    },
+    {
+        "tag": { "name": "KaTeX inline formula", "class": [ "style" ] },
+        "markdown": {
+            "open": "$",
+            "close": "$",
+            "contains": [],
+            "block_default": false,
+            "type": "inline"
+        },
+        "processor": [{
+            "name": "katex",
+            "options": {
+                "katex": [{
+                    "display_mode": "true",
+                }]
+            }
+        }],
+        "style": [{
+            "target": ["editor"],
+        }],
+        "symbol": {},
+        "_name": "formula",
+        "_namespace": "math"
     }
 ];
 

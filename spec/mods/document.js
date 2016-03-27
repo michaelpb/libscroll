@@ -59,7 +59,7 @@ describe('Document', () => {
 });
 
 describe('Tag', () => {
-    describe('when several are loaded', () => {
+    describe('while loading from files', () => {
         let tags;
         beforeEach((done) => {
             helpers.load_tags(loaded_tags => {
@@ -72,5 +72,27 @@ describe('Tag', () => {
             expect(normalize(EXPECTED_CSS))
                 .toEqual(normalize(Tag.render_css(tags)));
         });
+    });
+
+    it('renders with tag processors', () => {
+        const workspace = fixtures.make_workspace();
+        const tag = workspace.objects.get('formula');
+        expect(tag).toBeTruthy();
+
+        // Ensure tag processor has correct settings
+        const processors = tag._get_processors('default');
+        expect(processors.length).toEqual(1);
+        expect(processors[0].opts).toEqual({
+            displayMode: true, // block
+            throwOnError: false,
+        });
+
+        // Check actual processor now
+        const processor = tag.get_processor('default');
+        expect(processor).toBeTruthy();
+        const result = processor('\\sqrt{f}');
+        expect(result).toMatch(/^\s*<span class="katex-display">/);
+        expect(result).toMatch(/span>$/);
+        expect(result).toContain('√');
     });
 });

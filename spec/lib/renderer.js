@@ -1,5 +1,9 @@
 'use strict';
 const helpers = require('../support/helpers');
+const fixtures = require('../support/fixtures');
+
+const {EditorRenderer} = require('../../lib/renderer');
+const ScrollMarkdownParser = require('../../lib/parser/ScrollMarkdownParser');
 
 describe('EditorRenderer', () => {
     let parser;
@@ -116,6 +120,24 @@ describe('EditorRenderer', () => {
 
             renderer.render_to_string(text, parser, result => {
                 expect(result).toEqual(expected);
+                done();
+            });
+        });
+    });
+
+    // ^^^ legacy tests above, new tests below vvv
+
+    describe('with a more advanced tagset', () => {
+        it('renders an inline formula', done => {
+            const workspace = fixtures.make_workspace();
+            const tags = workspace.objects.tag;
+            const renderer = new EditorRenderer(tags);
+            const parser = new ScrollMarkdownParser(tags);
+            const text = 'para 1 has a $\\sqrt{a}$ formula';
+            renderer.render_to_string(text, parser, result => {
+                expect(result).toMatch(/>para 1 has a .*<span class="katex">/i);
+                expect(result).toMatch(/span>.* formula/i);
+                expect(result).toContain('√');
                 done();
             });
         });

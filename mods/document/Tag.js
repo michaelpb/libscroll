@@ -15,6 +15,12 @@ const SCHEMA = require('./schemas').tag;
 const CONFSCHEMA = new schemaconf.ConfSchema(
     SCHEMA, {"no_exceptions": true});
 
+const NOOP = () => {};
+
+function get_tag_processor_path(name) {
+    return `../../lib/tagprocessor/${name}`;
+}
+
 /* ***************************************
  * Tag represents a single tag           */
 class Tag extends ScrollObject {
@@ -39,6 +45,7 @@ class Tag extends ScrollObject {
         // v-- remove me
         // this.meta = this.info.tag;
         this._prepare();
+        this.processor_cache = {};
     };
 
     static load(workspace, relpath, callback) {
@@ -46,12 +53,11 @@ class Tag extends ScrollObject {
     }
 
     static prepare_containment(all_tags, callback) {
-        var contained_by = {};
+        let contained_by = {};
 
         // First pass, create dicts based on containment keywords
-        for (var i in all_tags) {
-            var tag = all_tags[i];
-            tag.containment_class.forEach(function (keyword) {
+        for (const tag of all_tags) {
+            tag.containment_class.forEach(keyword => {
                 if (!contained_by[keyword]) {
                     contained_by[keyword] = [];
                 }
@@ -60,13 +66,12 @@ class Tag extends ScrollObject {
         }
 
         // Second pass, populate containment hierarchies for each 
-        for (var i in all_tags) {
-            var tag = all_tags[i];
-            var list = [];
+        for (const tag of all_tags) {
+            let list = [];
 
             // Extend list by all children
-            tag.contains.forEach(function (keyword) {
-                var children = contained_by[keyword] || [];
+            tag.contains.forEach(keyword => {
+                const children = contained_by[keyword] || [];
                 list = list.concat(children);
             });
 
@@ -78,8 +83,22 @@ class Tag extends ScrollObject {
     }
 
     static render_css(tags, target) {
-        // return tags.map(tag => tag.get('css', target)).join('\n');
-        return tags.map(tag => tag.get('css', target)).join('');
+        // Use a set to prevent duplication, e.g. make idempotent
+        const result_set = new Set();
+
+        // First, render plain CSS
+        result_set.add(tags.map(tag => tag.get('css', target)).join(''));
+
+        // Second, render processor CSS
+        for (const tag of tags) {
+            const processors = tag._get_processors(target);
+            for (const processor of processors) {
+                result_set.add(processor.render_css(NOOP));
+            }
+        }
+
+        // Finally, join set
+        return Array.from(result_set).join('');
     }
 
     /* "Bakes" CSS and HTML into pre-rendered templates for fast
@@ -88,14 +107,12 @@ class Tag extends ScrollObject {
     _prepare() {
         this.css  = {};
         this.html = {};
-        for (var i in this.info.style) {
-            var style = this.info.style[i];
-            var css = this._replace_css_sheet(style.css);
-            //var html = this._wrap_html(style.html);
-            var html = style.html;
+        for (const style of (this.info.style || [])) {
+            const css = this._replace_css_sheet(style.css);
+            //let html = this._wrap_html(style.html);
+            const html = style.html;
 
-            for (var i in style.target) {
-                var target_name = style.target[i];
+            for (const target_name of (style.target || [])) {
                 this.css[target_name] = css;
                 this.html[target_name] = html;
             }
@@ -121,7 +138,7 @@ class Tag extends ScrollObject {
 
     _replace_css_sheet(css) {
         // Skip over empty CSS
-        var s = css;
+        let s = css;
         if (!s || lodash.trim(s) === '') {
             return '';
         }
@@ -136,14 +153,14 @@ class Tag extends ScrollObject {
 
         // now clean up, and prefix anything thats missing it with the appropriate
         // class:
-        s = s.split("}").map(lodash.bind(function (declaration) {
-            var decr = clean(declaration);
+        s = s.split("}").map(declaration => {
+            let decr = clean(declaration);
             if (decr === '') { return ''; }
             if (decr.indexOf(this.css_selector) !== 0) {
                 decr = this.css_selector + ' ' + decr;
             }
             return decr;
-        }, this)).join("} ");
+        }).join("} ");
 
         // NOTE: this is NOT secure, it is just convenient. It's very
         // easy to "escape" it, e.g. TAG, html { display: none; }
@@ -151,52 +168,88 @@ class Tag extends ScrollObject {
         return s;
     }
 
-    get(type, targets, is_retry) {
+    get(type, targets = [], is_retry) {
         /* Gets a particular rendering for this tag */
-        if (targets instanceof String) { targets = [targets] }
-        target = target || ['']; // to force default
-
-        let obj;
-        if (type === 'css') { obj = this.css; }
-        else { obj = this.html }
+        targets = targets instanceof String ? [targets] : targets;
+        const obj = type === 'css' ? this.css : this.html;
 
         // Now we try a few possibilities:
-        for (var i in targets) {
-            var target = targets[i];
+        for (const target of targets) {
             if (target in obj) {
                 return obj[target];
             }
         }
 
-        if (is_retry) { throw new Error("Tag contains no defaults!"); }
+        if (is_retry) {
+            throw new Error("Tag contains no defaults!");
+        }
+
+        // Fallback to defaults
         return this.get(type, ['editor', 'default'], true);
+    }
+
+    _get_processors(target) {
+        const matches = [];
+        for (const proc_info of (this.info.processor || [])) {
+            if (!proc_info.target || proc_info.target.length === 0 ||
+                    proc_info.target.indexOf(target) !== -1) {
+                // found a match
+                matches.push(proc_info);
+            }
+        }
+
+        if (matches.length > 0) {
+            // Now, load all processors, and return a callback that will
+            // process it
+            return matches.map(this.load_processor, this);
+        }
+
+        return [];
+    }
+
+    get_processor(target) {
+        const processors = this._get_processors(target);
+        if (processors.length < 1) {
+            return null;
+        }
+
+        // Otherwise, return a single function that does all the processing
+        return text_content => {
+            for (const processor of processors) {
+                // todo: needs async update here
+                text_content = processor.render(text_content, NOOP);
+            }
+            return text_content;
+        };
+    }
+
+    load_processor(processor_info) {
+        // We cache them, in the case that instantiation takes time or they
+        // have internal caches
+        if (this.processor_cache[processor_info.name]) {
+            return this.processor_cache[processor_info.name];
+        }
+
+        const path = get_tag_processor_path(processor_info.name);
+        const module = require(path); 
+        const instance = new module(this, processor_info.options);
+        this.processor_cache[processor_info.name] = instance;
+        return instance;
     }
 };
 
 
 /* ***************************************
  * Containment                           */
-var Containment = function (contains, names) {
+const Containment = function (contains, names) {
     this.tags = contains;
     this.containment_name = names.sort().join(':');
-
-    this.can_contain_blocks = false;
-    for (var i in contains) {
-        if (contains[i].is_block()) {
-            this.can_contain_blocks = true;
-            break;
-        }
-    }
+    this.can_contain_blocks = contains.some(tag => tag.is_block());
 };
 
 Containment.prototype.has = function (namespace, name) {
-    for (var i in this.tags) {
-        if (this.tags[i].name === name &&
-                this.tags[i].namespace === namespace) {
-            return true;
-        }
-    }
-    return false;
+    return this.tags
+        .some(tag => tag.name === name && tag.namespace === namespace);
 };
 
 module.exports = Tag;
