@@ -82,6 +82,10 @@ class Tag extends ScrollObject {
         callback();
     }
 
+    /*
+     * Given an array of Tags, and a render target, render any CSS styles that
+     * should be injected at top
+     */
     static render_css(tags, target) {
         // Use a set to prevent duplication, e.g. make idempotent
         const result_set = new Set();
@@ -91,7 +95,8 @@ class Tag extends ScrollObject {
 
         // Second, render processor CSS
         for (const tag of tags) {
-            const processors = tag._get_processors(target);
+            let processors = tag._get_processors(target);
+            processors = processors.filter(processor => processor.render_css);
             for (const processor of processors) {
                 result_set.add(processor.render_css(NOOP));
             }
@@ -101,7 +106,29 @@ class Tag extends ScrollObject {
         return Array.from(result_set).join('');
     }
 
-    /* "Bakes" CSS and HTML into pre-rendered templates for fast
+    /*
+     * Given an array of Tags, and a render target, render any HTML content
+     * that should be inserted between the <head></head> tags
+     */
+    static render_head(tags, target) {
+        // Use a set to prevent duplication, e.g. make idempotent
+        const result_set = new Set();
+
+        // Only processors generate head, so render that:
+        for (const tag of tags) {
+            let processors = tag._get_processors(target);
+            processors = processors.filter(processor => processor.render_head);
+            for (const processor of processors) {
+                result_set.add(processor.render_head(NOOP));
+            }
+        }
+
+        // Finally, join set
+        return Array.from(result_set).join('');
+    }
+
+    /*
+     * "Bakes" CSS and HTML into pre-rendered templates for fast
      * insertion / removal
      */
     _prepare() {
@@ -207,8 +234,13 @@ class Tag extends ScrollObject {
         return [];
     }
 
+    /*
+     * Gets processors for the given target for a render operation
+     */
     get_processor(target) {
-        const processors = this._get_processors(target);
+        let processors = this._get_processors(target);
+        // Only get those with render:
+        processors = processors.filter(processor => processor.render);
         if (processors.length < 1) {
             return null;
         }

@@ -243,7 +243,8 @@ function make_tags() {
         new Tag(info, {
             name: info._name,
             namespace: info._namespace,
-            path: `tag/${info._name}.cfg`,
+            path: `./${info._name}.cfg`,
+            fullpath: `/fixture/${info._name}.cfg`,
         }));
 }
 
@@ -252,7 +253,8 @@ function make_tags_parsing() {
         new Tag(info, {
             name: info._name,
             namespace: "default",
-            path: `tag/${info._name}.cfg`,
+            path: `./${info._name}.cfg`,
+            fullpath: `/fixture/${info._name}.cfg`,
         }));
 }
 

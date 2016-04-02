@@ -25,6 +25,9 @@ const ACTIONS = {
     rendercss: function (render_target = 'default') {
         return Tag.render_css(this.workspace.objects.tag, render_target);
     },
+    renderhead: function (render_target = 'default') {
+        return Tag.render_head(this.workspace.objects.tag, render_target);
+    },
 };
 
 class Document extends ScrollObject {
