@@ -83,12 +83,13 @@ class Filetype extends ScrollObject {
                         done();
                     });
             }, () => {
-                if (filetype.on_all_loaded) {
+                const type = filetype.object_constructor;
+                if (type.on_all_loaded) {
                     // Trigger final preparation (e.g. Tags
                     // creating containment hierarchy)
                     const all_of_filetype =
-                        loaded_objects.filter(item => item instanceof filetype);
-                    filetype.on_all_loaded(all_of_filetype, finished_filetype);
+                        loaded_objects.filter(item => item instanceof type);
+                    type.on_all_loaded(all_of_filetype, finished_filetype);
                 } else {
                     finished_filetype()
                 }

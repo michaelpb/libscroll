@@ -52,7 +52,7 @@ class Tag extends ScrollObject {
         ScrollObject.new_from_cfg(Tag, workspace, relpath, callback);
     }
 
-    static prepare_containment(all_tags, callback) {
+    static prepare_containment(all_tags) {
         let contained_by = {};
 
         // First pass, create dicts based on containment keywords
@@ -78,8 +78,6 @@ class Tag extends ScrollObject {
             // Attach list to tag
             tag.containment = new Containment(list, tag.contains);
         }
-
-        callback();
     }
 
     /*
@@ -104,6 +102,14 @@ class Tag extends ScrollObject {
 
         // Finally, join set
         return Array.from(result_set).join('');
+    }
+
+    /*
+     * Sets up tag containment hierarchy
+     */
+    static on_all_loaded(tags, callback) {
+        Tag.prepare_containment(tags);
+        callback();
     }
 
     /*
@@ -161,6 +167,10 @@ class Tag extends ScrollObject {
 
     is_symbol() {
         return this.info.symbol && this.info.symbol.tag;
+    }
+
+    is_block_container() {
+        return this.containment && this.containment.can_contain_blocks;
     }
 
     _replace_css_sheet(css) {

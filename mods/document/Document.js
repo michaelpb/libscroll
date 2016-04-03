@@ -112,6 +112,16 @@ class Document extends ScrollObject {
         return this.editor_renderer.render_to_string(fragment, this.editor_parser);
     }
 
+    get_tag(class_name) {
+        const tags = this.workspace.objects.tag;
+        for (const tag of tags) {
+            if (tag.fullname === class_name) {
+                return tag;
+            }
+        }
+        return null;
+    }
+
     get _actions() {
         return ACTIONS;
     }

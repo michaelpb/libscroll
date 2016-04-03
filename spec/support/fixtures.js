@@ -233,7 +233,8 @@ const TAGS_PARSING = [
 ];
 
 function make_document(workspace) {
-    const new_doc = new Document({document: {contents: TEXT}});
+    const new_doc = new Document({document: {contents: TEXT}},
+        {path: 'document/document.md'});
     new_doc.workspace = workspace;
     return new_doc;
 }

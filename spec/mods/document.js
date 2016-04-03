@@ -68,6 +68,10 @@ describe('Tag', () => {
             });
         });
 
+        it('has expected properties', () => {
+            expect(tags.every(tag => tag.containment)).toEqual(true);
+        });
+
         it('renders combined CSS', () => {
             expect(normalize(EXPECTED_CSS))
                 .toEqual(normalize(Tag.render_css(tags)));
