@@ -7,6 +7,7 @@ const StructuredParser = require('../../lib/parser/StructuredParser');
 const TreeParser = require('../../lib/parser/TreeParser');
 const {EditorRenderer, StyleRenderer} = require('../../lib/renderer');
 const Tag = require('../../mods/document/Tag');
+const Image = require('../../mods/media/Image');
 const Structure = require('../../mods/style/Structure');
 const glob = require('glob');
 const fs = require('fs');
@@ -14,6 +15,7 @@ const path = require('path');
 const PATH_PREFIX = path.resolve(path.join(__dirname, "..", "data"));
 
 const JUST_TAGS = [new Filetype(Tag, () => true)];
+const JUST_IMAGES = [new Filetype(Image, () => true)];
 const JUST_STRUCTURE = [new Filetype(Structure, () => true)];
 
 const WORKSPACE = new ScrollWorkspace(PATH_PREFIX, []);
@@ -23,6 +25,13 @@ exports.load_tags = function (callback) {
     glob("tags/*.cfg", {cwd: PATH_PREFIX}, (err, paths) => {
         if (err) { throw err; }
         Filetype.load_all(JUST_TAGS, paths, get_workspace, callback);
+    });
+};
+
+exports.load_images = function (callback) {
+    glob("image/*", {cwd: PATH_PREFIX}, (err, paths) => {
+        if (err) { throw err; }
+        Filetype.load_all(JUST_IMAGES, paths, get_workspace, callback);
     });
 };
 

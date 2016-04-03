@@ -6,28 +6,6 @@ const {LEFT_EARLIER, LEFT_HIGHER, EQUAL, RIGHT_EARLIER, RIGHT_HIGHER,
     UNRANKED} = require('../../lib/parser/constants');
 
 describe('Structure', () => {
-    describe('when checking tag fixture', () => {
-        it('auto-generates correct structure', () => {
-            /*
-            expect(st).toBeTruthy();
-            expect(tags).toBeTruthy();
-
-            // there are 5 test tags
-            const para = tags.find(tag => tag.name === 'para');
-            const section = tags.find(tag => tag.name === 'section');
-            const blockquote = tags.find(tag => tag.name === 'blockquote');
-            const emphasis = tags.find(tag => tag.name === 'emphasis');
-            const strong = tags.find(tag => tag.name === 'strong');
-
-            expect(st.hierarchy_cmp(section, para)).toEqual(LEFT_HIGHER);
-            expect(st.hierarchy_cmp(blockquote, section)).toEqual(RIGHT_HIGHER);
-            expect(st.hierarchy_cmp(para, blockquote)).toEqual(EQUAL);
-            expect(st.hierarchy_cmp(para, strong)).toEqual(LEFT_HIGHER);
-            expect(st.hierarchy_cmp(section, strong)).toEqual(LEFT_HIGHER);
-            */
-        });
-    });
-
     describe('when testing loaded tags', () => {
         let st;
         let tags;

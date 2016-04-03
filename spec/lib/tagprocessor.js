@@ -3,6 +3,7 @@ const MathJaxTagProcessor = require('../../lib/tagprocessor/mathjax');
 const KatexTagProcessor = require('../../lib/tagprocessor/katex');
 const HighlightTagProcessor = require('../../lib/tagprocessor/highlight');
 const CSSIncludeTagProcessor = require('../../lib/tagprocessor/cssinclude');
+const ObjectMatcherProcessor = require('../../lib/tagprocessor/objectmatcher');
 const helpers = require('../support/helpers');
 const fixtures = require('../support/fixtures');
 
@@ -91,6 +92,18 @@ describe('TagProcessor', () => {
             const citp = new CSSIncludeTagProcessor(tag, options);
             citp.render_head(result => {
                 expect(result).toEqual(EXPECTED);
+                done();
+            });
+        });
+    });
+
+    describe('ObjectMatcher Processor', () => {
+        it('looks up the relative path of a file', done => {
+            const workspace = fixtures.make_workspace();
+            const tag = workspace.objects.tag[0];
+            const options = {};
+            const omp = new ObjectMatcherProcessor(tag, options);
+            omp.render('./blockquote.cfg', result => {
                 done();
             });
         });

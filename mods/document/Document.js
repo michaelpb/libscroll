@@ -37,18 +37,14 @@ class Document extends ScrollObject {
     }
 
     static load(workspace, relpath, callback) {
+        // TODO: need to generalize ScrollObject loading into a few different types
         if (relpath.match(/.cfg$/)) {
             ScrollObject.new_from_cfg(Document, workspace, relpath, callback);
         } else {
             workspace.read(relpath, data => {
                 const info = {document: {contents: data.toString()}};
-
-                // TODO
                 const meta = {path: relpath, name: 'document', namespace: 'default'};
                 const doc = new Document(info, meta);
-                // TODO
-                doc.workspace = workspace;
-                // doc.path = relpath;
                 callback(doc);
             });
         }
