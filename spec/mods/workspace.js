@@ -5,6 +5,8 @@ const ScrollWorkspace = require('../../mods/workspace/ScrollWorkspace');
 const PATH_PREFIX = path.resolve(path.join(__dirname, "..", "data"));
 const fixtures = require('../support/fixtures');
 
+const normalize = s => s.split(".").sort().join(".");
+
 describe('ScrollWorkspace', () => {
     it('instantiates an empty instance', () => {
         const workspace = new ScrollWorkspace('', []);
@@ -72,7 +74,30 @@ describe('ScrollWorkspace', () => {
                     namespace: 'default',
                     fullname: 'default_blockquote',
                     classnames: ['text'],
-                }
+                },
             });
     });
+
+    it('can reload scroll objects after changes', () => {
+        const workspace = fixtures.make_workspace();
+        const doc = workspace.objects.document[0];
+        const EXPECTED_CSS = normalize([
+            '.default_blockquote { display: block; background: gray;} ',
+            '.default_emphasis { text-variation: italic;} ',
+            '.default_para { display: block; padding: 3px;} ',
+            '.default_para > bk { display: inline;} ',
+            '.default_para html { display: none;} ', // check prevents breakage
+            '.default_section { display: block; font-size: 24pt;} ',
+            '.default_strong { display: block; font-weight: bold;} '].join(''));
+
+        expect(normalize(doc.actions.rendercss())).toEqual(EXPECTED_CSS);
+
+        const tag = workspace.objects.get('blockquote');
+        const new_contents = tag.meta.contents.replace('gray', 'blue');
+        workspace.reload(tag, new_contents);
+        const new_expected = EXPECTED_CSS.replace('gray', 'blue');
+        expect(new_expected).not.toEqual(EXPECTED_CSS);
+        expect(normalize(doc.actions.rendercss())).toEqual(new_expected);
+    });
+
 });

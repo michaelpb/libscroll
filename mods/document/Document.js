@@ -4,6 +4,10 @@ The Document class encapsulates a single Document. A scroll workspace (e.g.
 ".scroll" file), may have more than one Document.
 */
 
+const path = require('path');
+
+const async = require('async');
+
 const ScrollMarkdownParser = require('../../lib/parser/ScrollMarkdownParser');
 const TreeParser = require('../../lib/parser/TreeParser');
 const UnstructuredTreeParser = require('../../lib/parser/UnstructuredTreeParser');
@@ -12,7 +16,6 @@ const Style = require('../style/Style');
 const Structure = require('../style/Structure');
 const ScrollObject = require('../../lib/ScrollObject');
 const Tag = require('./Tag');
-const async = require('async');
 
 const NOOP = () => {};
 
@@ -43,7 +46,12 @@ class Document extends ScrollObject {
         } else {
             workspace.read(relpath, data => {
                 const info = {document: {contents: data.toString()}};
-                const meta = {path: relpath, name: 'document', namespace: 'default'};
+                const meta = {
+                    fullpath: path.join(workspace.base_path, relpath),
+                    path: relpath,
+                    name: 'document',
+                    namespace: 'default',
+                };
                 const doc = new Document(info, meta);
                 callback(doc);
             });

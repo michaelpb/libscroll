@@ -46,6 +46,7 @@ describe('ObjectMatcher', () => {
         test.ok(!match("exact:default_blockquote", emphasis), "Exact (negative)");
         test.ok(match("namespace:default", emphasis), "Namespace");
         test.ok(!match("namespace:lol", emphasis), "Namespace (negative)");
+        test.ok(match("path:blockquote.cfg", blockquote), "Path");
 
         // Test reuse:
         const tm = new ObjectMatcher("namespace:nope class:simplestyle "+

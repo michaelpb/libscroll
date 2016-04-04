@@ -4,6 +4,22 @@ const ScrollWorkspace = require('../../mods/workspace/ScrollWorkspace');
 const Document = require('../../mods/document/Document');
 const Tag = require('../../mods/document/Tag');
 
+// most of block quote
+const BLOCKQUOTE_TEXT = [
+    '[tag]',
+    'name = Blockquote',
+    'class = text',
+    '[markdown]',
+    'type = block',
+    'block_container = true',
+    'contains = text',
+    '[style]',
+    'target=editor',
+    'css = TAG { display: block; background: gray; }',
+    'html = <blockquote>{% contents %}</blockquote>',
+].join('\n');
+
+
 const TEXT = [
     "para 1 some -- sy < mb >ols",
     "",
@@ -33,7 +49,8 @@ const TAGS = [
         ],
         "symbol": {},
         "_name": "blockquote",
-        "_namespace": "default"
+        "_namespace": "default",
+        "_contents": BLOCKQUOTE_TEXT,
     },
     {
         "tag": { "name": "Emdash", "class": [ "style", "simplestyle" ] },
@@ -244,6 +261,7 @@ function make_tags() {
         new Tag(info, {
             name: info._name,
             namespace: info._namespace,
+            contents: info._contents,
             path: `./${info._name}.cfg`,
             fullpath: `/fixture/${info._name}.cfg`,
         }));

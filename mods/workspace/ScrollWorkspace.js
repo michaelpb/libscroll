@@ -45,6 +45,16 @@ class ObjectContainer extends Array {
     }
 
     /*
+     * Replaces old object with new object
+     */
+    swap(old_object, new_object) {
+        const index = this.findIndex(object => object === old_object);
+        this[index] = new_object;
+        this[old_object.typename] = this[old_object.typename].filter(object => object !== old_object);
+        this[new_object.typename].push(new_object);
+    }
+
+    /*
      * Finds a object with the given matching string
      */
     get(matching_string) {
@@ -104,6 +114,11 @@ class ScrollWorkspace extends ScrollObject {
             if (error) { throw error; }
             callback(result);
         });
+    }
+
+    reload(scrollobj, new_content) {
+        const new_copy = ScrollObject.reload(scrollobj, new_content);
+        this.objects.swap(scrollobj, new_copy);
     }
 
     read(relative_path, callback) {
