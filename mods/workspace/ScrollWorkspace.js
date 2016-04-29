@@ -116,17 +116,42 @@ class ScrollWorkspace extends ScrollObject {
         });
     }
 
+    new_atomic_change(object, content, description) {
+        return {object, content, description};
+    }
+
+    save_change(atomic_change, callback) {
+        const {object, content, description} = atomic_change;
+        const new_file = this.reload(object, content);
+        this.write_obj(new_file, callback);
+    }
+
     reload(scrollobj, new_content) {
         const new_copy = ScrollObject.reload(scrollobj, new_content);
         this.objects.swap(scrollobj, new_copy);
+        return new_copy;
     }
 
     read(relative_path, callback) {
-        const full_path = path.join(this.base_path, relative_path);
-        fs.readFile(full_path, (error, data) => {
+        fs.readFile(this._path(relative_path), (error, data) => {
             if (error) { throw error; }
             callback(data);
         });
+    }
+
+    write(relative_path, contents, callback) {
+        fs.writeFile(this._path(relative_path), contents, (error, data) => {
+            if (error) { throw error; }
+            callback(data);
+        });
+    }
+
+    write_obj(scrollobj, callback) {
+        this.write(scrollobj.path, scrollobj.meta.contents, callback);
+    }
+
+    _path(relative_path) {
+        return path.join(this.base_path, relative_path);
     }
 
     get _actions() {

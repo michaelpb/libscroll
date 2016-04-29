@@ -5,12 +5,14 @@ const ScrollWorkspace = require('../../mods/workspace/ScrollWorkspace');
 const ScrollMarkdownParser = require('../../lib/parser/ScrollMarkdownParser');
 const StructuredParser = require('../../lib/parser/StructuredParser');
 const TreeParser = require('../../lib/parser/TreeParser');
+const fsutils = require('../../lib/utils/fsutils');
 const {EditorRenderer, StyleRenderer} = require('../../lib/renderer');
 const Tag = require('../../mods/document/Tag');
 const Image = require('../../mods/media/Image');
 const Structure = require('../../mods/style/Structure');
 const glob = require('glob');
 const fs = require('fs');
+const fse = require('fs-extra');
 const path = require('path');
 const PATH_PREFIX = path.resolve(path.join(__dirname, "..", "data"));
 
@@ -140,4 +142,15 @@ exports.ast_strip_tags = function (o) {
     // clean up other non-essential fields
     delete o.is_unranked;
     delete o.rank;
+};
+
+exports.with_tmp_workspace = function (callback) {
+    const ws_path = path.join(PATH_PREFIX, 'workspaces', 'basic_ws/');
+    fsutils.get_free_tmp_dir(tmp_path => {
+        tmp_path = tmp_path + '/'; // hack add trailing slash
+        fse.copy(ws_path, tmp_path, () => {
+            process.chdir(tmp_path);
+            callback(tmp_path);
+        });
+    });
 };

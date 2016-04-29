@@ -65,22 +65,37 @@ through discrete classes that inherit from ScrollObject.
 
 - `abstract static load(workspace, path, callback)`
 
-    - Loads the given ScrollObject into memory. In general, this
-      is not used directly, since  you can just instantiate a
-      ScrollWorkspace that will load for you
+    - Loads the given ScrollObject into memory. In general, this is not used
+      directly, since  you can just instantiate a ScrollWorkspace that will
+      load for you
 
 
 ### static methods
 
 - `static new_from_cfg(constructor, path, callback)`
 
-    - Helper method that loads the given CFG file, parses it, and
-      instantiates a constructor based on the given callback
+    - Helper method that loads the given CFG file, parses it, and instantiates
+      a constructor based on the given callback
+
+- `static new_from_binary(constructor, path, callback)`
+
+    - Similar to above, except it won't read the contents into
+      memory. Good for binary media.
+
+- `static reload(scrollobj, new_content)`
+
+    - Constructs a new version of ScrollObj, filled with the given
+      new content, assuming new_content is a string of conf data.
+
 
 ### public properties
 
-- `name` -- this is an all lowercase name of this type, e.g.
+- `typename` -- this is an all lowercase name of this type, e.g.
   'document' for Document, 'tag' for Tag
+
+- `path` -- relative path for object, relative to workspace dir
+
+- `fullpath` -- absolute path for object on file-system
 
 ## ScrollContainer
 
@@ -103,11 +118,6 @@ const ScrollWorkspace = require('libscroll/mods/workspace/ScrollWorkspace');
 
 ### static
 
-- `static load(path, callback)`
-
-   - In the case of ScrollWorkspace, this loads the entire
-     workspace into memory.
-
 - `constructor(base_path, objects, manifest = {})`
 
     - Creates a new workspace with given manifest info and objects
@@ -118,6 +128,20 @@ const ScrollWorkspace = require('libscroll/mods/workspace/ScrollWorkspace');
     - wraps around `fs.readFile`, given a subpath it will read its
       contents and call callback
 
+- `write(path, contents, callback)`
+    - wraps around `fs.writeFile`, given a subpath it will write
+      the given contents and call callback on success
+
+- `static reload(scrollobj, new_content)`
+
+    - Swaps the given ScrollObj with a new version with the given
+      new content.
+
+- `new_atomic_change(object, new_content, change_description)` -- Returns
+  atomic change object that can be used to save a change to disk
+
+- `save_change(atomic_change, callback)` -- Actually "commits" atomic change to
+  disk
 
 ### public properties
 
@@ -170,11 +194,31 @@ const Document = require('libscroll/mods/document/Document');
       given TreeParser, the given ScrollMarkdownParser, and the given
       EditorRenderer, which should all be already fully loaded.
 
-### public properties
+### public methods
 
-- `parser` - the TreeParser
-- `editor_parser` - a flat-parser (for editor reading)
-- `editor_renderer` - a flat-renderer (for editor export)
+- `new_renderer(target, style_name)`
+
+    - Constructs a new EditorRenderer or StyleRenderer base on
+      target. `style_name` should identify the style being used (in
+      object matcher syntax)
+
+- `new_parser(target, structure_name = null)`
+
+    - Constructs a new ScrollMarkdownParser, TreeParser or
+      UnstructuredTreeParser based on the `target` and
+      `structure_name`. Logic follows.
+    - If `target` is `'editor'`, then `ScrollMarkdownParser`
+    - If `structure_name` is `null`, then it uses an
+      UnstructuredTreeParser (e.g. one that mimicks input tag
+      structure)
+    - Otherwise, it assumes `structure_name` is an object matcher
+      for a Structure that is then used to construct a `TreeParser`
+
+- `editor_render(fragment, refresh = false, emit_source = false)`
+    - Renders a markdown fragment. Use `refresh` to force reload
+      tags and rebuild parser, and `emit_source` to control the
+      existence of the `data=''` attribute on blocks which contains
+      the source.
 
 ## Tag
 

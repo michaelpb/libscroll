@@ -4,6 +4,8 @@ const path = require('path');
 const ScrollWorkspace = require('../../mods/workspace/ScrollWorkspace');
 const PATH_PREFIX = path.resolve(path.join(__dirname, "..", "data"));
 const fixtures = require('../support/fixtures');
+const helpers = require('../support/helpers');
+const fsutils = require('../../lib/utils/fsutils');
 
 const normalize = s => s.split(".").sort().join(".");
 
@@ -100,4 +102,46 @@ describe('ScrollWorkspace', () => {
         expect(normalize(doc.actions.rendercss())).toEqual(new_expected);
     });
 
+    it('creates atomic change objects', () => {
+        const workspace = fixtures.make_workspace();
+        const doc = workspace.objects.document[0];
+        const change = workspace.new_atomic_change(doc, 'test', 'test description');
+        expect(change.description).toEqual('test description');
+    });
+
+    describe('when loading a workspace from disk', () => {
+        let last_path = null;
+        let workspace = null;
+        beforeEach(done => {
+            helpers.with_tmp_workspace(path => {
+                last_path = path;
+                ScrollWorkspace.load(path, new_workspace => {
+                    workspace = new_workspace;
+                    done();
+                });
+            });
+        });
+
+        afterEach(done => {
+            fsutils.rmdirtmp(last_path, () => {
+                workspace = null;
+                last_path = null;
+                done();
+            });
+        });
+
+        it('can save changes to disk', done => {
+            const TEST_CONTENT = 'test\ncontent';
+            const doc = workspace.objects.document[0];
+            const change = workspace.new_atomic_change(doc, TEST_CONTENT, 'desc');
+            workspace.save_change(change, () => {
+                const content = fs.readFileSync(doc.fullpath);
+                const doc2 = workspace.objects.document[0];
+                expect(workspace.objects.document.length).toEqual(1);
+                expect(doc.fullpath).toEqual(doc2.fullpath);
+                expect(content.toString()).toEqual(TEST_CONTENT);
+                done();
+            });
+        });
+    });
 });

@@ -17,6 +17,12 @@ const Structure = require('../style/Structure');
 const ScrollObject = require('../../lib/ScrollObject');
 const Tag = require('./Tag');
 
+// Pull in document schema
+const schemaconf = require('schemaconf');
+const SCHEMA = require('./schemas').document;
+const CONFSCHEMA = new schemaconf.ConfSchema(
+    SCHEMA, {"no_exceptions": true});
+
 const NOOP = () => {};
 
 const ACTIONS = {
@@ -40,22 +46,26 @@ class Document extends ScrollObject {
     }
 
     static load(workspace, relpath, callback) {
-        // TODO: need to generalize ScrollObject loading into a few different types
-        if (relpath.match(/.cfg$/)) {
-            ScrollObject.new_from_cfg(Document, workspace, relpath, callback);
+        if (relpath.match(/.md$/)) {
+            // Load as purely text
+            ScrollObject.new_from_cfg(Document, workspace, relpath, callback,
+                Document.parse_contents);
         } else {
-            workspace.read(relpath, data => {
-                const info = {document: {contents: data.toString()}};
-                const meta = {
-                    fullpath: path.join(workspace.base_path, relpath),
-                    path: relpath,
-                    name: 'document',
-                    namespace: 'default',
-                };
-                const doc = new Document(info, meta);
-                callback(doc);
-            });
+            // Load as regular schema conf object
+            ScrollObject.new_from_cfg(Document, workspace, relpath, callback);
         }
+    }
+
+    static parse_contents(data) {
+        return {document: [{contents: data.toString()}]};
+    }
+
+    static get dependencies() {
+        return ['tag', 'structure'];
+    }
+
+    static get confschema() {
+        return CONFSCHEMA;
     }
 
     new_renderer(target, style_name) {
@@ -128,10 +138,6 @@ class Document extends ScrollObject {
 
     get _actions() {
         return ACTIONS;
-    }
-
-    static get dependencies() {
-        return ['tag', 'structure'];
     }
 }
 

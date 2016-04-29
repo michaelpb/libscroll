@@ -85,3 +85,13 @@ module.exports.tag = {
         },
     },
 };
+
+module.exports.document = {
+    "document": {
+        singular: true,
+        required: true,
+        values: {
+            contents: true,
+        },
+    },
+};
