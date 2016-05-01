@@ -108,6 +108,7 @@ const DEFAULTS = [
     new Filetype(get_mod('document.Tag')),
     new Filetype(get_mod('style.Structure')),
     new Filetype(get_mod('media.Image')),
+    new Filetype(get_mod('compilation.Compilation')),
     // new Filetype(get_mod('style.Style')),
 ];
 

@@ -344,7 +344,7 @@ const Style = require('libscroll/mods/style/Style');
 ## Export
 
 ```javascript
-const Export = require('libscroll/mods/export/Export');
+const Compilation = require('libscroll/mods/compilation/Compilation');
 ```
 
 TODO
@@ -362,9 +362,8 @@ TODO
 - Document
     - `render(render_target)` - renders document to string (return value)
     - `publish(path, render_target)` - renders document to a given path
-- ExportProfile
-    - `publish(basedir = './build')` - renders entire project to
-      base directory
+- Compilation
+    - `compile()` - renders entire project
 - Structure
     - `tree(document)` - returns the tree
 - Style
