@@ -154,6 +154,10 @@ class ScrollWorkspace extends ScrollObject {
         return path.join(this.base_path, relative_path);
     }
 
+    resolve_relpath(relative_path) {
+        return path.resolve(this.base_path, relative_path);
+    }
+
     get _actions() {
         return ACTIONS;
     }
